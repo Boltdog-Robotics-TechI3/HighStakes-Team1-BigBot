@@ -1,48 +1,50 @@
 #include "main.h"
 
+const int MAX_VELOCITY = 600;
+
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor lift(16);
 
 std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
 	.withMotors({-18, 19, -20}, {11, -12, 13})
 	.withDimensions({AbstractMotor::gearset::blue, (84.0/60.0)}, {{4_in, 15.25_in}, imev5BlueTPR})
+	.withGains({0.0025, 0, 0.0001}, {0.001, 0, 0.0}, {0.0004, 0, 0})
 	.build();
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
 
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('H', false);
 
-std::shared_ptr<AsyncMotionProfileController> profileController = 
-  AsyncMotionProfileControllerBuilder()
-    .withLimits({
-      1.0, // Maximum linear velocity of the Chassis in m/s
-      2.0, // Maximum linear acceleration of the Chassis in m/s/s
-      10.0 // Maximum linear jerk of the Chassis in m/s/s/s
-    })
-    .withOutput(chassis)
-    .buildMotionProfileController();
-
-
-/* move 4 in
-	get ring
-	back 4 in
-	score ring
-   turn 45
-   move forward 2 ft
-*/
+/**
+ * The autonomous path used for a skill run.
+ * 
+ * Should do the in order:
+ * - Score 1 ring on a alliance stake
+ * - 3 rings on one mobile goal and place it in a corner
+ * - 1 ring on the wall stake
+ * - 4 ring on another mobile goal and place it in the corner
+ * - Buddy climb
+ */
 void skills_autonomous() {
-	chassis->setMaxVelocity(300);
-	lift.move(127);
-	chassis -> moveDistance(4_in);
-	pros::delay(500);
-	chassis -> moveDistance(-2.25_in);
-	pros::delay(500);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.75); 
+	lift.move(127); //start intake 
+	chassis -> moveDistance(4.5_in); //grab ring
+	pros::delay(250);
+	chassis -> moveDistance(-2.5_in); //go back to alliance stake 
+	pros::delay(750); //score ring
 	chassis -> moveDistance(16_in);
 	chassis -> turnAngle(45_deg);
-	chassis -> moveDistance(28_in);
-	pros::delay(2000);
-	lift.move(0);
+	chassis -> moveDistance(34_in); //go to next ring
+	pros::delay(300);
+	lift.move(0); //stop intake because we dont have a goal yet
 	chassis -> turnAngle(-135_deg);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
+	chassis -> moveDistance(-24_in);
+	chassis->setMaxVelocity(MAX_VELOCITY * .75); //speed back up
+	mogoClamp.extend(); // grab goal
+	lift.move(127);
+	chassis -> turnAngle(-90_deg); //turn to next ring
+	chassis -> moveDistance(24_in);
 }
 /**
  * A callback function for LLEMU's center button.
