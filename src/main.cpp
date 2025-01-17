@@ -131,6 +131,7 @@ void opcontrol() {
 		int dir = (pow((master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);    // Gets amount forward/backward from left joystick
 		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
 
+		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
 		if (master.get_digital(DIGITAL_R1)) { 
 			lift.move(127);
 		} else if (master.get_digital(DIGITAL_R2)) {
@@ -138,7 +139,8 @@ void opcontrol() {
 		} else {
 			lift.move(0);
 		}
-
+		
+		//Toggle the goal clamp on the back (pneumatic clamp)
 		if (master.get_digital_new_press(DIGITAL_B)) { 
 			mogoClamp.toggle();
 		}
@@ -147,7 +149,7 @@ void opcontrol() {
 			skills_autonomous();
 		}
 		
-		drivetrain->arcade(dir, turn);
+		drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		pros::delay(20);                               // Run for 20 ms then update
 	}
 }
