@@ -6,10 +6,10 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor lift(11);
 
 std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
-	.withMotors({-8, 9, -10}, {1, -2, 3})
+	.withMotors({-8, -10}, {1, 3})
 	.withDimensions({AbstractMotor::gearset::blue, (84.0/60.0)}, {{4_in, 15.25_in}, imev5BlueTPR})
-	.withGains({0.0025, 0, 0.0001}, {0.001, 0, 0.0}, {0.0004, 0, 0})
-	.withMaxVoltage(12)	
+	.withGains({0.00285, 0.0, 0.0/*0.000075*/}, {0.0009, 0, 0}, {0, 0, 0})
+	// .withMaxVoltage(12)	
 	.build();
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
@@ -27,33 +27,47 @@ pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
  * - Buddy climb
  */
 void skills_autonomous() {
-	//Test code
-	chassis -> moveDistance(2_ft);
-	chassis->turnAngle(90_deg);
-	return;
+	// //Test code
+
+	// chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	// chassis -> moveDistance(2_ft);
+	// // chassis->turnAngle(90_deg);
+	// return;
 
 	//Score 1 ring on alliance stake
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.75); 
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	lift.move(127); //start intake 
-	chassis -> moveDistance(4.5_in); //grab 1st ring
-	pros::delay(250);
-	chassis -> moveDistance(-2.5_in); //go back to alliance stake 
-	pros::delay(750); //score ring
+	chassis -> moveDistance(5_in); //grab 1st ring
+	pros::delay(150);
+	lift.move(0);
+	chassis -> moveDistance(-3_in); //go back to alliance stake 
+	lift.move(127); //start intake 
+	pros::delay(1250); //score ring
 
 	//Put 3 rings on mobile goal and place in corner
 	chassis -> moveDistance(16_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(45_deg);
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	chassis -> moveDistance(34_in); //go to 2nd next ring
 	pros::delay(300);
 	lift.move(0); //stop intake because we dont have a goal yet
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(-135_deg);
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
 	chassis -> moveDistance(-24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .75); //speed back up
 	mogoClamp.extend(); // grab goal
 	lift.move(127);
-	chassis -> turnAngle(90_deg); //turn to next ring
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
+	chassis -> turnAngle(-90_deg); //turn to next ring
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	chassis -> moveDistance(24_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
+	chassis -> turnAngle(-45_deg); //turn to corner
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis -> moveDistance(15_in);
+
+	/*
 	chassis -> turnAngle(180_deg);//going for the 3rd ring
 	chassis -> moveDistance(4_ft);
 	chassis -> turnAngle(-45_deg);
@@ -74,6 +88,7 @@ void skills_autonomous() {
 	// chassis -> moveDistance(); // going for next 
 	// chassis -> turnAngle();
 	// chassis ->moveDistance(); // going to the corner
+	*/
 
 }
 /**
