@@ -1,20 +1,35 @@
 #include "main.h"
 
+
 const int MAX_VELOCITY = 600;
+
+bool intakeFront = true;
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor lift(11);
 
+okapi::Motor frontRight(3);
+okapi::Motor backRight(1);
+okapi::Motor topRight(-2);
+
+okapi::Motor frontLeft(-8);
+okapi::Motor backLeft(9);
+okapi::Motor topLeft(-10);
+
+okapi::MotorGroup right({frontRight, topRight, backRight});
+okapi::MotorGroup left({frontLeft, topLeft, backLeft});
+
+
 std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
-	.withMotors({-8, -10}, {1, 3})
+	.withMotors(left, right)
 	.withDimensions({AbstractMotor::gearset::blue, (84.0/60.0)}, {{4_in, 15.25_in}, imev5BlueTPR})
-	.withGains({0.00285, 0.0, 0.0/*0.000075*/}, {0.0009, 0, 0}, {0, 0, 0})
-	// .withMaxVoltage(12)	
+	.withGains({0.00285, 0.0, 0.0/*0.000075*/}, {0.00095, 0, 0}, {0, 0, 0})
 	.build();
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
 
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
+
 
 /**
  * The autonomous path used for a skill run.
@@ -27,35 +42,30 @@ pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
  * - Buddy climb
  */
 void skills_autonomous() {
-	// //Test code
-
-	// chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	// chassis -> moveDistance(2_ft);
-	// // chassis->turnAngle(90_deg);
-	// return;
 
 	//Score 1 ring on alliance stake
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	lift.move(127); //start intake 
-	chassis -> moveDistance(5_in); //grab 1st ring
+	chassis -> moveDistance(6_in); //grab 1st ring
 	pros::delay(150);
 	lift.move(0);
-	chassis -> moveDistance(-3_in); //go back to alliance stake 
+	chassis -> moveDistance(-6_in); //go back to alliance stake 
 	lift.move(127); //start intake 
 	pros::delay(1250); //score ring
 
 	//Put 3 rings on mobile goal and place in corner
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	chassis -> moveDistance(16_in);
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(45_deg);
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	chassis -> moveDistance(34_in); //go to 2nd next ring
-	pros::delay(300);
+	pros::delay(100);
 	lift.move(0); //stop intake because we dont have a goal yet
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(-135_deg);
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
-	chassis -> moveDistance(-24_in);
+	chassis -> moveDistance(-20_in);
 	mogoClamp.extend(); // grab goal
 	lift.move(127);
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
@@ -65,10 +75,16 @@ void skills_autonomous() {
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(-45_deg); //turn to corner
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(15_in);
-
+	chassis -> moveDistance(13.5_in); //go into corner
+	pros::delay(200); //grab ring
+	chassis -> moveDistance(-13.5_in); //back up and spin around
+	lift.move(0); 
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
+	chassis -> turnAngle(180_deg); //turn around so back is facing corner
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis -> moveDistance(-15_in); 
+	mogoClamp.retract(); //drop goal in corner
 	/*
-	chassis -> turnAngle(180_deg);//going for the 3rd ring
 	chassis -> moveDistance(4_ft);
 	chassis -> turnAngle(-45_deg);
 	chassis -> moveDistance(28_in); // going to the corner
@@ -165,16 +181,43 @@ void autonomous() {}
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
+
+int currentLimit = 2200;
+
+
 void opcontrol() {
 	//Controls:
 	//B button toggles clamp
 	//A button controls intake and lift
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
+	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+
+	frontLeft.setCurrentLimit(currentLimit);
+	frontRight.setCurrentLimit(currentLimit);
+	topLeft.setCurrentLimit(currentLimit);
+	topRight.setCurrentLimit(currentLimit);
+	backLeft.setCurrentLimit(currentLimit);
+	backRight.setCurrentLimit(currentLimit);
+
+	master.rumble(".");
+
+	int maxCurr = 0;
+	int count = 0;
+	double eff = 0;
+	int avgCurr = 0;
 
 	while (true) {
-		int dir = (pow((master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);    // Gets amount forward/backward from left joystick
-		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
+		int dir;
+		int turn;
+
+		if(intakeFront){
+			dir = (pow((master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);    // Gets amount forward/backward from left joystick
+			turn = (pow((master.get_analog(ANALOG_RIGHT_X) / 127.0), 3) * 127.0);  // Gets the turn left/right from right joystick
+		} else {
+			dir = (pow((-master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);
+			turn = (pow((master.get_analog(ANALOG_RIGHT_X) / 127.0), 3) * 127.0);
+		}
 
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
 		if (master.get_digital(DIGITAL_R1)) { 
@@ -193,7 +236,23 @@ void opcontrol() {
 		if (master.get_digital(DIGITAL_RIGHT)) {
 			skills_autonomous();
 		}
-		
+
+		if (master.get_digital_new_press(DIGITAL_L2)) { 
+			intakeFront = !intakeFront;
+		}
+
+		if(count == 10){
+			avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
+					backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
+					topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
+			master.set_text(1, 1, std::to_string(avgCurr));
+			
+			count = 0;
+		}
+		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
+
+		count++;
+
 		drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		pros::delay(20);                               // Run for 20 ms then update
 	}
