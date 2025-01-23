@@ -6,19 +6,23 @@ const int MAX_VELOCITY = 600;
 bool intakeFront = true;
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor lift(11);
+pros::Motor lift(5);
 
-okapi::Motor frontRight(3);
-okapi::Motor backRight(1);
-okapi::Motor topRight(-2);
+okapi::Motor frontRight(1);
+okapi::Motor backRight(2);
+okapi::Motor topRight(-3);
 
 okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(9);
-okapi::Motor topLeft(-10);
+okapi::Motor backLeft(-9);
+okapi::Motor topLeft(10);
 
 okapi::MotorGroup right({frontRight, topRight, backRight});
 okapi::MotorGroup left({frontLeft, topLeft, backLeft});
 
+okapi::Motor ladyBrownLeft(-7);
+okapi::Motor ladyBrownRight(4);
+
+okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
 
 std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
 	.withMotors(left, right)
@@ -29,6 +33,26 @@ std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
 
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
+
+//Init functions
+
+void drivetrainInit(){
+	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+}
+
+void ladyBrownInit(){
+	ladyBrownLeft.setVoltageLimit(7200);
+	ladyBrownRight.setVoltageLimit(7200);
+
+	ladyBrownLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+	ladyBrownRight.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+
+	ladyBrownLeft.setReversed(false);
+	ladyBrownRight.setReversed(true);
+
+	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+	ladyBrownGroup.setVoltageLimit(7200);
+}
 
 
 /**
@@ -134,7 +158,9 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+
+	drivetrainInit();
+	ladyBrownInit();
 }
 
 /**
@@ -184,6 +210,15 @@ void autonomous() {}
 
 int currentLimit = 2200;
 
+void setDriveCurrentLimt(int limit){
+	frontLeft.setCurrentLimit(limit);
+	frontRight.setCurrentLimit(limit);
+	topLeft.setCurrentLimit(limit);
+	topRight.setCurrentLimit(limit);
+	backLeft.setCurrentLimit(limit);
+	backRight.setCurrentLimit(limit);
+}
+
 
 void opcontrol() {
 	//Controls:
@@ -193,19 +228,10 @@ void opcontrol() {
 	//Right joystick controls turning
 	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
-	frontLeft.setCurrentLimit(currentLimit);
-	frontRight.setCurrentLimit(currentLimit);
-	topLeft.setCurrentLimit(currentLimit);
-	topRight.setCurrentLimit(currentLimit);
-	backLeft.setCurrentLimit(currentLimit);
-	backRight.setCurrentLimit(currentLimit);
+	setDriveCurrentLimt(currentLimit);
 
 	master.rumble(".");
 
-	int maxCurr = 0;
-	int count = 0;
-	double eff = 0;
-	int avgCurr = 0;
 
 	while (true) {
 		int dir;
@@ -241,17 +267,25 @@ void opcontrol() {
 			intakeFront = !intakeFront;
 		}
 
-		if(count == 10){
-			avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
-					backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
-					topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
-			master.set_text(1, 1, std::to_string(avgCurr));
-			
-			count = 0;
+
+		if (master.get_digital(DIGITAL_UP)) { 
+			ladyBrownGroup.moveVoltage(12000);
+		} else if (master.get_digital(DIGITAL_DOWN)) {
+			ladyBrownGroup.moveVoltage(-12000);
+		} else {
+			ladyBrownGroup.moveVoltage(0);
 		}
+		// if(count == 10){
+		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
+		// 			backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
+		// 			topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
+		// 	master.set_text(1, 1, std::to_string(avgCurr));
+			
+		// 	count = 0;
+		// }
 		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
 
-		count++;
+		// count++;
 
 		drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		pros::delay(20);                               // Run for 20 ms then update
