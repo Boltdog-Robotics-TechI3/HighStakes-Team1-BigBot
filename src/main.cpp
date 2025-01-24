@@ -1,9 +1,10 @@
 #include "main.h"
 
-
 const int MAX_VELOCITY = 600;
 
 bool intakeFront = true;
+
+int teleOPCurrentLimit = 2200;
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor lift(5);
@@ -24,11 +25,14 @@ okapi::Motor ladyBrownRight(4);
 
 okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
 
-std::shared_ptr<ChassisController> chassis = ChassisControllerBuilder()
+auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
 	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (84.0/60.0)}, {{4_in, 15.25_in}, imev5BlueTPR})
-	.withGains({0.00285, 0.0, 0.0/*0.000075*/}, {0.00095, 0, 0}, {0, 0, 0})
-	.build();
+	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
+	.withGains(
+		{0.00285, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0})
+	.build());
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
 
@@ -52,6 +56,17 @@ void ladyBrownInit(){
 
 	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 	ladyBrownGroup.setVoltageLimit(7200);
+
+	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
+}
+
+void setDriveCurrentLimt(int limit){
+	frontLeft.setCurrentLimit(limit);
+	frontRight.setCurrentLimit(limit);
+	topLeft.setCurrentLimit(limit);
+	topRight.setCurrentLimit(limit);
+	backLeft.setCurrentLimit(limit);
+	backRight.setCurrentLimit(limit);
 }
 
 
@@ -65,19 +80,36 @@ void ladyBrownInit(){
  * - 4 ring on another mobile goal and place it in the corner
  * - Buddy climb
  */
+void cornerMoveFunct(void* param){
+	chassis -> moveDistanceAsync(-20_in);
+}
+
+
 void skills_autonomous() {
 
+
 	//Score 1 ring on alliance stake
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis->setGains(
+		{0.003, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0}
+	);
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.3);
 	lift.move(127); //start intake 
-	chassis -> moveDistance(6_in); //grab 1st ring
-	pros::delay(150);
+	pros::delay(100);
+	chassis -> moveDistance(12_in); //grab 1st ring
+	pros::delay(300);
 	lift.move(0);
-	chassis -> moveDistance(-6_in); //go back to alliance stake 
+	chassis -> moveDistance(-11_in); //go back to alliance stake 
 	lift.move(127); //start intake 
 	pros::delay(1250); //score ring
 
 	//Put 3 rings on mobile goal and place in corner
+	chassis->setGains(
+		{0.003, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0}
+	);	
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
 	chassis -> moveDistance(16_in);
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
@@ -106,30 +138,93 @@ void skills_autonomous() {
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(180_deg); //turn around so back is facing corner
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-15_in); 
+	// pros::Task* cornerMoveTask = new pros::Task(cornerMoveFunct);
+	chassis -> moveDistanceAsync(-20_in);
+	pros::delay(2300);
 	mogoClamp.retract(); //drop goal in corner
-	/*
-	chassis -> moveDistance(4_ft);
-	chassis -> turnAngle(-45_deg);
-	chassis -> moveDistance(28_in); // going to the corner
-	
-	//Drop off ring
-	chassis -> turnAngle(180_deg); 
-	mogoClamp.retract();
-	pros::delay(300);
-	
-	chassis -> turnAngle(45_deg); // going for the stack of rings (we will discard them)
-	chassis -> moveDistance(52_in); 
-	// chassis -> turnAngle(180_deg);
-	// chassis -> moveDistance(36_in); // going for mobile goal
-	// chassis -> turnAngle(90_deg); 
-	// chassis -> moveDistance(18_in); // going for the 5th ring
-	// chassis -> turnAngle(-90_deg);
-	// chassis -> moveDistance(); // going for next 
-	// chassis -> turnAngle();
-	// chassis ->moveDistance(); // going to the corner
-	*/
 
+	pros::delay(200);
+
+	chassis -> moveDistance(24_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
+	chassis -> turnAngle(-135_deg);
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis -> moveDistance(-48_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY); 
+	chassis -> turnAngle(-45_deg);
+
+	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
+	chassis -> moveDistance(-24_in);
+
+	mogoClamp.extend();
+
+	chassis -> setMaxVelocity(MAX_VELOCITY);
+
+	chassis -> turnAngle(90_deg);
+
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis -> moveDistance(-48_in);
+
+	/**/
+
+}
+
+void dropGoalAuto(){
+	ladyBrownGroup.moveAbsolute(200, 30);
+	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
+	chassis -> setGains(
+		{0.002, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0});
+	chassis -> moveDistance(-4_in);
+	mogoClamp.extend();
+	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
+	chassis -> setGains(
+		{0.001, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0});
+	chassis -> moveDistance(12_in);
+	chassis -> turnAngle(-20_deg);
+	lift.move(127);
+	pros::delay(500);
+	lift.move(-127);
+	pros::delay(500);
+	lift.move(127);
+	chassis -> moveDistance(30_in);
+	chassis -> turnAngle(-135_deg);
+	chassis -> moveDistance(-12_in);
+	mogoClamp.retract();
+	lift.move(0);
+	ladyBrownGroup.moveAbsolute(245, 30);
+	chassis -> moveDistance(54_in);
+}
+
+void keepGoalAuto(){
+	ladyBrownGroup.moveAbsolute(200, 30);
+	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
+	chassis -> setGains(
+		{0.002, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0});
+	chassis -> moveDistance(-4_in);
+	mogoClamp.extend();
+	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
+	chassis -> setGains(
+		{0.001, 0.0, 0.0}, 
+		{0.00095, 0, 0}, 
+		{0, 0, 0});
+	chassis -> moveDistance(12_in);
+	chassis -> turnAngle(-20_deg);
+	lift.move(127);
+	pros::delay(500);
+	lift.move(-127);
+	pros::delay(500);
+	lift.move(127);
+	chassis -> moveDistance(30_in);
+	chassis -> turnAngle(-135_deg);
+	lift.move(0);
+	ladyBrownGroup.moveAbsolute(245, 30);
+	chassis -> moveDistance(54_in);
 }
 /**
  * A callback function for LLEMU's center button.
@@ -137,15 +232,7 @@ void skills_autonomous() {
  * When this callback is fired, it will toggle line 2 of the LCD text between
  * "I was pressed!" and nothing.
  */
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
-	}
-}
+void on_center_button() {}
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -154,10 +241,7 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
-
-	pros::lcd::register_btn1_cb(on_center_button);
+	initializeScreen();
 
 	drivetrainInit();
 	ladyBrownInit();
@@ -192,7 +276,32 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	setDriveCurrentLimt(2200);
+	switch (autoSelection) {
+		case 0:
+			//Match Plus Side Keep Goal Auto
+			break;
+		case 1:
+			//Match Plus Side Drop Goal Auto
+			keepGoalAuto();
+			break;
+		case 2:
+			//Match Climb Goal Keep Goal Autowatch climb keep
+			dropGoalAuto();
+			break;
+		case 3:
+			//Match Climb Goal Drop Goal Selected
+			break;
+		case 4:
+			//Skills
+			skills_autonomous();
+			break;
+		case 5:
+			//Do nothing
+			break;
+	}
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -208,16 +317,8 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 
-int currentLimit = 2200;
 
-void setDriveCurrentLimt(int limit){
-	frontLeft.setCurrentLimit(limit);
-	frontRight.setCurrentLimit(limit);
-	topLeft.setCurrentLimit(limit);
-	topRight.setCurrentLimit(limit);
-	backLeft.setCurrentLimit(limit);
-	backRight.setCurrentLimit(limit);
-}
+
 
 
 void opcontrol() {
@@ -226,13 +327,11 @@ void opcontrol() {
 	//A button controls intake and lift
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
-	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
-	setDriveCurrentLimt(currentLimit);
+	setDriveCurrentLimt(teleOPCurrentLimit);
+
 
 	master.rumble(".");
-
-
 	while (true) {
 		int dir;
 		int turn;
@@ -268,12 +367,16 @@ void opcontrol() {
 		}
 
 
-		if (master.get_digital(DIGITAL_UP)) { 
-			ladyBrownGroup.moveVoltage(12000);
-		} else if (master.get_digital(DIGITAL_DOWN)) {
-			ladyBrownGroup.moveVoltage(-12000);
-		} else {
-			ladyBrownGroup.moveVoltage(0);
+		// if (master.get_digital(DIGITAL_UP)) { 
+		// 	ladyBrownGroup.moveVoltage(12000);
+		// } else if (master.get_digital(DIGITAL_DOWN)) {
+		// 	ladyBrownGroup.moveVoltage(-12000);
+		// } else {
+		// 	ladyBrownGroup.moveVoltage(0);
+		// }
+
+		if (master.get_digital_new_press(DIGITAL_LEFT)) {
+			ladyBrownGroup.moveAbsolute(200, 30);
 		}
 		// if(count == 10){
 		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
