@@ -1,4 +1,5 @@
 #include "main.h"
+#include "lemlib/api.hpp" // IWYU pragma: keep
 
 const int MAX_VELOCITY = 600;
 
@@ -6,42 +7,80 @@ bool intakeFront = true;
 
 int teleOPCurrentLimit = 2200;
 
-pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor lift(5);
+pros::Controller driverController(pros::E_CONTROLLER_MASTER);
 
-okapi::Motor frontRight(1);
-okapi::Motor backRight(2);
-okapi::Motor topRight(-3);
+pros::MotorGroup leftDriveMotors({-18, 19, -20}, pros::MotorGearset::blue);
+pros::MotorGroup rightDriveMotors({11, -12, 13}, pros::MotorGearset::blue); 
 
-okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(-9);
-okapi::Motor topLeft(10);
+lemlib::Drivetrain drivetrain(&leftDriveMotors, // left motor group
+                              &rightDriveMotors, // right motor group
+                              12, // 12 inch track width
+                              lemlib::Omniwheel::NEW_4, // using new 4" omnis
+                              360, // drivetrain rpm is 360
+                              2 // horizontal drift is 2 (for now)
+);
 
-okapi::MotorGroup right({frontRight, topRight, backRight});
-okapi::MotorGroup left({frontLeft, topLeft, backLeft});
+// pros::Imu imu(10);
+
+pros::Rotation rotationSensor(9);
+
+// horizontal tracking wheel
+lemlib::TrackingWheel horizontalTrackingWheel(&rotationSensor, lemlib::Omniwheel::NEW_275, -4);
+
+lemlib::OdomSensors sensors(nullptr, // vertical tracking wheel 1, set to null
+                            nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
+                            &horizontalTrackingWheel, // horizontal tracking wheel 1
+                            nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+                            nullptr // inertial sensor
+);
+
+// lateral PID controller
+lemlib::ControllerSettings lateralController(10, // proportional gain (kP)
+                                              0, // integral gain (kI)
+                                              3, // derivative gain (kD)
+                                              3, // anti windup
+                                              1, // small error range, in inches
+                                              100, // small error range timeout, in milliseconds
+                                              3, // large error range, in inches
+                                              500, // large error range timeout, in milliseconds
+                                              20 // maximum acceleration (slew)
+);
+
+// angular PID controller
+lemlib::ControllerSettings angularController(2, // proportional gain (kP)
+                                              0, // integral gain (kI)
+                                              10, // derivative gain (kD)
+                                              3, // anti windup
+                                              1, // small error range, in degrees
+                                              100, // small error range timeout, in milliseconds
+                                              3, // large error range, in degrees
+                                              500, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
+);
+
+// create the chassis
+lemlib::Chassis chassis(drivetrain, // drivetrain settings
+                        lateralController, // lateral PID settings
+                        angularController, // angular PID settings
+                        sensors // odometry sensors
+);
+
+pros::Motor lift(-2);
+
+pros::Motor intake(-10);
 
 okapi::Motor ladyBrownLeft(-7);
 okapi::Motor ladyBrownRight(4);
 
 okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
 
-auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
-	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
-	.withGains(
-		{0.00285, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0})
-	.build());
-
-std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
-
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
 
 //Init functions
 
 void drivetrainInit(){
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+	pros::lcd::initialize(); // initialize brain screen
+    chassis.calibrate(); // calibrate sensors
 }
 
 void ladyBrownInit(){
@@ -61,178 +100,9 @@ void ladyBrownInit(){
 }
 
 void setDriveCurrentLimt(int limit){
-	frontLeft.setCurrentLimit(limit);
-	frontRight.setCurrentLimit(limit);
-	topLeft.setCurrentLimit(limit);
-	topRight.setCurrentLimit(limit);
-	backLeft.setCurrentLimit(limit);
-	backRight.setCurrentLimit(limit);
+	leftDriveMotors.set_current_limit_all(limit);
+	rightDriveMotors.set_current_limit_all(limit);
 }
-
-
-/**
- * The autonomous path used for a skill run.
- * 
- * Should do these in order:
- * - Score 1 ring on a alliance stake
- * - 3 rings on one mobile goal and place it in a corner
- * - 1 ring on the wall stake
- * - 4 ring on another mobile goal and place it in the corner
- * - Buddy climb
- */
-void cornerMoveFunct(void* param){
-	chassis -> moveDistanceAsync(-20_in);
-}
-
-
-void skills_autonomous() {
-
-
-	//Score 1 ring on alliance stake
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.3);
-	lift.move(127); //start intake 
-	pros::delay(100);
-	chassis -> moveDistance(12_in); //grab 1st ring
-	pros::delay(300);
-	lift.move(0);
-	chassis -> moveDistance(-11_in); //go back to alliance stake 
-	lift.move(127); //start intake 
-	pros::delay(1250); //score ring
-
-	//Put 3 rings on mobile goal and place in corner
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);	
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(16_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(45_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(34_in); //go to 2nd next ring
-	pros::delay(100);
-	lift.move(0); //stop intake because we dont have a goal yet
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
-	chassis -> moveDistance(-20_in);
-	mogoClamp.extend(); // grab goal
-	lift.move(127);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-90_deg); //turn to next ring
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg); //turn to corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(13.5_in); //go into corner
-	pros::delay(200); //grab ring
-	chassis -> moveDistance(-13.5_in); //back up and spin around
-	lift.move(0); 
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(180_deg); //turn around so back is facing corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	// pros::Task* cornerMoveTask = new pros::Task(cornerMoveFunct);
-	chassis -> moveDistanceAsync(-20_in);
-	pros::delay(2300);
-	mogoClamp.retract(); //drop goal in corner
-
-	pros::delay(200);
-
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-48_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
-	chassis -> moveDistance(-24_in);
-
-	mogoClamp.extend();
-
-	chassis -> setMaxVelocity(MAX_VELOCITY);
-
-	chassis -> turnAngle(90_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-48_in);
-
-	/**/
-
-}
-
-void dropGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-135_deg);
-	chassis -> moveDistance(-12_in);
-	mogoClamp.retract();
-	lift.move(0);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	chassis -> moveDistance(54_in);
-}
-
-void keepGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-135_deg);
-	lift.move(0);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	chassis -> moveDistance(54_in);
-}
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {}
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -284,18 +154,18 @@ void autonomous() {
 			break;
 		case 1:
 			//Match Plus Side Drop Goal Auto
-			keepGoalAuto();
+			// keepGoalAuto();
 			break;
 		case 2:
 			//Match Climb Goal Keep Goal Autowatch climb keep
-			dropGoalAuto();
+			// dropGoalAuto();
 			break;
 		case 3:
 			//Match Climb Goal Drop Goal Selected
 			break;
 		case 4:
 			//Skills
-			skills_autonomous();
+			// skills_autonomous();
 			break;
 		case 5:
 			//Do nothing
@@ -316,11 +186,6 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-
-
-
-
-
 void opcontrol() {
 	//Controls:
 	//B button toggles clamp
@@ -330,59 +195,58 @@ void opcontrol() {
 
 	setDriveCurrentLimt(teleOPCurrentLimit);
 
+	driverController.rumble(".");
 
-	master.rumble(".");
 	while (true) {
-		int dir;
-		int turn;
+		if (driverController.get_digital_new_press(DIGITAL_Y)) {
 
-		if(intakeFront){
-			dir = (pow((master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);    // Gets amount forward/backward from left joystick
-			turn = (pow((master.get_analog(ANALOG_RIGHT_X) / 127.0), 3) * 127.0);  // Gets the turn left/right from right joystick
-		} else {
-			dir = (pow((-master.get_analog(ANALOG_LEFT_Y) / 127.0), 3) * 127.0);
-			turn = (pow((master.get_analog(ANALOG_RIGHT_X) / 127.0), 3) * 127.0);
 		}
 
+        int leftY = driverController.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        int rightX = driverController.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
+        // move the robot
+        chassis.arcade(leftY, rightX);
+
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
-		if (master.get_digital(DIGITAL_R1)) { 
+		if (driverController.get_digital(DIGITAL_R1)) { 
 			lift.move(127);
-		} else if (master.get_digital(DIGITAL_R2)) {
+			intake.move(127);
+			
+		} else if (driverController.get_digital(DIGITAL_R2)) {
 			lift.move(-127);
+			intake.move(-127);
 		} else {
 			lift.move(0);
+			intake.move(0);
 		}
 		
 		//Toggle the goal clamp on the back (pneumatic clamp)
-		if (master.get_digital_new_press(DIGITAL_B)) { 
+		if (driverController.get_digital_new_press(DIGITAL_B)) { 
 			mogoClamp.toggle();
 		}
 
-		if (master.get_digital(DIGITAL_RIGHT)) {
-			skills_autonomous();
-		}
-
-		if (master.get_digital_new_press(DIGITAL_L2)) { 
+		if (driverController.get_digital_new_press(DIGITAL_L2)) { 
 			intakeFront = !intakeFront;
 		}
 
 
-		// if (master.get_digital(DIGITAL_UP)) { 
+		// if (driverController.get_digital(DIGITAL_UP)) { 
 		// 	ladyBrownGroup.moveVoltage(12000);
-		// } else if (master.get_digital(DIGITAL_DOWN)) {
+		// } else if (driverController.get_digital(DIGITAL_DOWN)) {
 		// 	ladyBrownGroup.moveVoltage(-12000);
 		// } else {
 		// 	ladyBrownGroup.moveVoltage(0);
 		// }
 
-		if (master.get_digital_new_press(DIGITAL_LEFT)) {
+		if (driverController.get_digital_new_press(DIGITAL_LEFT)) {
 			ladyBrownGroup.moveAbsolute(200, 30);
 		}
 		// if(count == 10){
 		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
 		// 			backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
 		// 			topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
-		// 	master.set_text(1, 1, std::to_string(avgCurr));
+		// 	driverController.set_text(1, 1, std::to_string(avgCurr));
 			
 		// 	count = 0;
 		// }
@@ -390,7 +254,7 @@ void opcontrol() {
 
 		// count++;
 
-		drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
+		// drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		pros::delay(20);                               // Run for 20 ms then update
 	}
 }
