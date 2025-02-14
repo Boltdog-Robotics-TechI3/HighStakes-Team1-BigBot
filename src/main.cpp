@@ -148,7 +148,7 @@ void skills_autonomous() {
 	chassis -> moveDistance(24_in);
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4);
 	chassis -> moveDistance(-48_in);
 	chassis -> setMaxVelocity(MAX_VELOCITY); 
 	chassis -> turnAngle(-45_deg);
