@@ -5,24 +5,24 @@ const int MAX_VELOCITY = 600;
 
 bool intakeFront = true;
 
-int teleOPCurrentLimit = 2200;
+int teleOPCurrentLimit = 2500;
 
 pros::Controller driverController(pros::E_CONTROLLER_MASTER);
 
-pros::MotorGroup leftDriveMotors({-18, 19, -20}, pros::MotorGearset::blue);
-pros::MotorGroup rightDriveMotors({11, -12, 13}, pros::MotorGearset::blue); 
+pros::MotorGroup leftDriveMotors({-8, 9, -10}, pros::MotorGearset::blue);
+pros::MotorGroup rightDriveMotors({1, 2, -3}, pros::MotorGearset::blue); 
 
 lemlib::Drivetrain drivetrain(&leftDriveMotors, // left motor group
                               &rightDriveMotors, // right motor group
-                              12, // 12 inch track width
-                              lemlib::Omniwheel::NEW_4, // using new 4" omnis
-                              360, // drivetrain rpm is 360
+                              11.625, // 12 inch track width
+                              lemlib::Omniwheel::NEW_275, // using new 2.75" omnis
+                              600 * (36.0 / 48.0), // drivetrain rpm is 450
                               2 // horizontal drift is 2 (for now)
 );
 
-// pros::Imu imu(10);
+pros::Imu imu(12);
 
-pros::Rotation rotationSensor(9);
+pros::Rotation rotationSensor(-7);
 
 // horizontal tracking wheel
 lemlib::TrackingWheel horizontalTrackingWheel(&rotationSensor, lemlib::Omniwheel::NEW_275, -4);
@@ -31,50 +31,50 @@ lemlib::OdomSensors sensors(nullptr, // vertical tracking wheel 1, set to null
                             nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
                             &horizontalTrackingWheel, // horizontal tracking wheel 1
                             nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
-                            nullptr // inertial sensor
+                            &imu // inertial sensor
+);
+
+// anuglar PID controller
+lemlib::ControllerSettings angularController( 10, // proportional gain (kP)
+                                              0, // integral gain (kI)
+                                              10, // derivative gain (kD)
+                                              3, // anti windup
+                                              1, // small error range, in inches
+                                        	  100, // small error range timeout, in milliseconds
+                                              3, // large error range, in inches
+                                              500, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
 );
 
 // lateral PID controller
-lemlib::ControllerSettings lateralController(10, // proportional gain (kP)
+lemlib::ControllerSettings lateralController( 10, // proportional gain (kP)
                                               0, // integral gain (kI)
                                               3, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in inches
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in inches
-                                              500, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
-);
-
-// angular PID controller
-lemlib::ControllerSettings angularController(2, // proportional gain (kP)
-                                              0, // integral gain (kI)
-                                              10, // derivative gain (kD)
                                               3, // anti windup
                                               1, // small error range, in degrees
                                               100, // small error range timeout, in milliseconds
                                               3, // large error range, in degrees
                                               500, // large error range timeout, in milliseconds
-                                              0 // maximum acceleration (slew)
+                                              20 // maximum acceleration (slew)
 );
+
+// lemlib::ExpoDriveCurve driveCurve(3, 10, .9);
 
 // create the chassis
 lemlib::Chassis chassis(drivetrain, // drivetrain settings
                         lateralController, // lateral PID settings
                         angularController, // angular PID settings
                         sensors // odometry sensors
+						// &driveCurve
 );
 
-pros::Motor lift(-2);
+pros::Motor lift(-11);
+pros::Motor intake(-20);
 
-pros::Motor intake(-10);
+pros::MotorGroup ladyBrownGroup({5, -6}, pros::MotorGearset::green);
 
-okapi::Motor ladyBrownLeft(-7);
-okapi::Motor ladyBrownRight(4);
-
-okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
-
-pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
+pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('H', false);
+pros::adi::Pneumatics rushMech = pros::adi::Pneumatics('G', false);
 
 //Init functions
 
@@ -84,19 +84,11 @@ void drivetrainInit(){
 }
 
 void ladyBrownInit(){
-	ladyBrownLeft.setVoltageLimit(7200);
-	ladyBrownRight.setVoltageLimit(7200);
+	// ladyBrownGroup.set_current_limit_all(2500.0 / 2.0);
 
-	ladyBrownLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
-	ladyBrownRight.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+	ladyBrownGroup.set_brake_mode_all(pros::MotorBrake::hold);
 
-	ladyBrownLeft.setReversed(false);
-	ladyBrownRight.setReversed(true);
-
-	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
-	ladyBrownGroup.setVoltageLimit(7200);
-
-	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
+	ladyBrownGroup.set_encoder_units_all(pros::MotorUnits::degrees);
 }
 
 void setDriveCurrentLimt(int limit){
@@ -147,25 +139,16 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	setDriveCurrentLimt(2200);
 	switch (autoSelection) {
 		case 0:
-			//Match Plus Side Keep Goal Auto
 			break;
 		case 1:
-			//Match Plus Side Drop Goal Auto
-			// keepGoalAuto();
 			break;
 		case 2:
-			//Match Climb Goal Keep Goal Autowatch climb keep
-			// dropGoalAuto();
 			break;
 		case 3:
-			//Match Climb Goal Drop Goal Selected
 			break;
 		case 4:
-			//Skills
-			// skills_autonomous();
 			break;
 		case 5:
 			//Do nothing
@@ -185,28 +168,43 @@ void autonomous() {
  * If the robot is disabled or communications is lost, the
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
+ * 
+ *
  */
+
+ ASSET(testPath1_txt);
+ ASSET(example_txt);
+
+
 void opcontrol() {
-	//Controls:
-	//B button toggles clamp
-	//A button controls intake and lift
-	//Left joystick controls forward/backwards movement
-	//Right joystick controls turning
+	// int count = 0;
+	// setDriveCurrentLimt(teleOPCurrentLimit);
 
-	setDriveCurrentLimt(teleOPCurrentLimit);
+	// chassis.setPose(0, 0, 0);
 
-	driverController.rumble(".");
+	// chassis.follow(example_txt, 5, 30000);
 
 	while (true) {
-		if (driverController.get_digital_new_press(DIGITAL_Y)) {
 
+
+		if(driverController.get_digital_new_press(DIGITAL_A)){
+			rushMech.toggle();
 		}
+
+		// if(count > 10){
+		// 	driverController.clear();
+		// 	driverController.print(0, 0, "%d", chassis.getPose().x);
+		// 	driverController.print(1, 0, "%d", chassis.getPose().y);
+		// 	count = 0;
+		// } else {
+		// 	count++;
+		// }
+
 
         int leftY = driverController.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = driverController.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
-        // move the robot
-        chassis.arcade(leftY, rightX);
+        //move the robot
 
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
 		if (driverController.get_digital(DIGITAL_R1)) { 
@@ -226,35 +224,20 @@ void opcontrol() {
 			mogoClamp.toggle();
 		}
 
-		if (driverController.get_digital_new_press(DIGITAL_L2)) { 
-			intakeFront = !intakeFront;
+		if (driverController.get_digital(DIGITAL_UP)){
+			ladyBrownGroup.move(40);
+		} else if (driverController.get_digital(DIGITAL_DOWN)){
+			ladyBrownGroup.move(-40);
+		} else {
+			ladyBrownGroup.brake();
 		}
 
-
-		// if (driverController.get_digital(DIGITAL_UP)) { 
-		// 	ladyBrownGroup.moveVoltage(12000);
-		// } else if (driverController.get_digital(DIGITAL_DOWN)) {
-		// 	ladyBrownGroup.moveVoltage(-12000);
-		// } else {
-		// 	ladyBrownGroup.moveVoltage(0);
+		// if (driverController.get_digital_new_press(DIGITAL_L2)) { 
+		// 	intakeFront = !intakeFront;
 		// }
 
-		if (driverController.get_digital_new_press(DIGITAL_LEFT)) {
-			ladyBrownGroup.moveAbsolute(200, 30);
-		}
-		// if(count == 10){
-		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
-		// 			backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
-		// 			topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
-		// 	driverController.set_text(1, 1, std::to_string(avgCurr));
-			
-		// 	count = 0;
-		// }
-		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
+        chassis.arcade(leftY, rightX);
 
-		// count++;
-
-		// drivetrain->arcade(dir, turn); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		pros::delay(20);                               // Run for 20 ms then update
 	}
 }
