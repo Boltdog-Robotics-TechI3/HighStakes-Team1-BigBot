@@ -1,4 +1,4 @@
-#include <main.h>
+#include "main.h"
 
 pros::MotorGroup leftDriveMotors({-8, 9, -10}, pros::MotorGearset::blue);
 pros::MotorGroup rightDriveMotors({1, 2, -3}, pros::MotorGearset::blue); 
@@ -59,6 +59,12 @@ lemlib::Chassis chassis(drivetrain, // drivetrain settings
 						// &driveCurve
 );
 
+void setDriveCurrentLimt(int limit){
+	leftDriveMotors.set_current_limit_all(limit);
+	rightDriveMotors.set_current_limit_all(limit);
+}
+
 void drivetrainInit(){
     chassis.calibrate(); // calibrate sensors
 }
+

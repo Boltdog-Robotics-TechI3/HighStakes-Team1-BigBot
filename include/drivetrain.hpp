@@ -1,4 +1,4 @@
-#include <main.h>
+#include "main.h"
 
 extern pros::MotorGroup leftDriveMotors;
 extern pros::MotorGroup rightDriveMotors;
@@ -14,4 +14,5 @@ extern lemlib::ControllerSettings angularController;
 extern lemlib::ControllerSettings lateralController;
 extern lemlib::Chassis chassis;
 
+void setDriveCurrentLimit();
 void drivetrainInit();

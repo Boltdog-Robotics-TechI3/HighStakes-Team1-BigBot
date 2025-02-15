@@ -77,7 +77,7 @@ void opcontrol(void);
  * You can add C++-only headers here
  */
 //#include <iostream>
-#include "globals.h"
+#include "globals.hpp"
 #include "screen.h"
 #include "autos.hpp"
 #include "drivetrain.hpp"

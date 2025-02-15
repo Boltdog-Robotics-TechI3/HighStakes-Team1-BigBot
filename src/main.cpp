@@ -1,25 +1,6 @@
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 
-const int MAX_VELOCITY = 600;
-
-bool intakeFront = true;
-
-int teleOPCurrentLimit = 2500;
-
-pros::Controller driverController(pros::E_CONTROLLER_MASTER);
-
-pros::Motor lift(-11);
-pros::Motor intake(-20);
-
-pros::MotorGroup ladyBrownGroup({5, -6}, pros::MotorGearset::green);
-
-pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('H', false);
-pros::adi::Pneumatics rushMech = pros::adi::Pneumatics('G', false);
-
-//Init functions
-
-
 
 void ladyBrownInit(){
 	// ladyBrownGroup.set_current_limit_all(2500.0 / 2.0);
@@ -29,10 +10,7 @@ void ladyBrownInit(){
 	ladyBrownGroup.set_encoder_units_all(pros::MotorUnits::degrees);
 }
 
-void setDriveCurrentLimt(int limit){
-	leftDriveMotors.set_current_limit_all(limit);
-	rightDriveMotors.set_current_limit_all(limit);
-}
+
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -79,10 +57,11 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	switch (autoSelection) {
+	switch (1) {
 		case 0:
 			break;
 		case 1:
+			goalRush();
 			break;
 		case 2:
 			break;
@@ -127,9 +106,7 @@ void opcontrol() {
 	while (true) {
 
 		if(driverController.get_digital_new_press(DIGITAL_LEFT)){
-			chassis.follow(example_txt, 1, 30000);
-		} else if (chassis.isInMotion()){
-			continue;
+			autonomous();
 		}
 
 		if(driverController.get_digital_new_press(DIGITAL_A)){
