@@ -57,8 +57,9 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	switch (1) {
+	switch (0) {
 		case 0:
+			safeAuto();
 			break;
 		case 1:
 			goalRush();
