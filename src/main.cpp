@@ -7,21 +7,24 @@ bool intakeFront = true;
 int teleOPCurrentLimit = 2200;
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor lift(5);
+pros::Motor lift(-11);
+pros::Motor intake(-20);
+
+pros::IMU gyro(12);
 
 okapi::Motor frontRight(1);
 okapi::Motor backRight(2);
 okapi::Motor topRight(-3);
 
 okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(-9);
-okapi::Motor topLeft(10);
+okapi::Motor backLeft(9);
+okapi::Motor topLeft(-10);
 
 okapi::MotorGroup right({frontRight, topRight, backRight});
 okapi::MotorGroup left({frontLeft, topLeft, backLeft});
 
-okapi::Motor ladyBrownLeft(-7);
-okapi::Motor ladyBrownRight(4);
+okapi::Motor ladyBrownLeft(-5);
+okapi::Motor ladyBrownRight(6);
 
 okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
 
@@ -29,8 +32,8 @@ auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisController
 	.withMotors(left, right)
 	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
 	.withGains(
-		{0.00285, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
+		{0.0015, 0.0, 0.0000005}, 
+		{3.15, 0, 1.5}, 
 		{0, 0, 0})
 	.build());
 
@@ -69,6 +72,39 @@ void setDriveCurrentLimt(int limit){
 	backRight.setCurrentLimit(limit);
 }
 
+/// @brief Custom Turnangle Function
+/// @param angle angle in degrees
+/// @param timeout timeout before the robot gives up in seconds
+void turnAngle(float angle, int timeout = 10) {
+    auto gains = get<1>(chassis->getGains());
+
+    float target = angle + gyro.get_rotation();
+    float error = angle;
+	float previousError = 0;
+	float integral = 0;
+	float errorCounter = 0;
+	float precision = 1;
+	
+	auto exitTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(timeout);
+	while (errorCounter < 50 && std::chrono::high_resolution_clock::now() < exitTime) {
+		integral += error;
+		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 1);
+		right.moveVelocity(-velocity);
+		left.moveVelocity(velocity);
+		pros::delay(10);
+		//driverController.print(0,0,"%f", velocity);
+		previousError = error;
+		error = target - gyro.get_rotation();
+		if (abs(error) < precision) {
+			errorCounter++;
+		}
+		else {
+			errorCounter = 0;
+		}
+	}
+	right.moveVelocity(0);
+	left.moveVelocity(0);
+}
 
 /**
  * The autonomous path used for a skill run.
@@ -86,87 +122,12 @@ void cornerMoveFunct(void* param){
 
 
 void skills_autonomous() {
-
-
-	//Score 1 ring on alliance stake
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.3);
-	lift.move(127); //start intake 
-	pros::delay(100);
-	chassis -> moveDistance(12_in); //grab 1st ring
-	pros::delay(300);
-	lift.move(0);
-	chassis -> moveDistance(-11_in); //go back to alliance stake 
-	lift.move(127); //start intake 
-	pros::delay(1250); //score ring
-
-	//Put 3 rings on mobile goal and place in corner
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);	
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(16_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(45_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(34_in); //go to 2nd next ring
-	pros::delay(100);
-	lift.move(0); //stop intake because we dont have a goal yet
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
-	chassis -> moveDistance(-20_in);
-	mogoClamp.extend(); // grab goal
-	lift.move(127);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-90_deg); //turn to next ring
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg); //turn to corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(13.5_in); //go into corner
-	pros::delay(200); //grab ring
-	chassis -> moveDistance(-13.5_in); //back up and spin around
-	lift.move(0); 
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(180_deg); //turn around so back is facing corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	// pros::Task* cornerMoveTask = new pros::Task(cornerMoveFunct);
-	chassis -> moveDistanceAsync(-20_in);
-	pros::delay(2300);
-	mogoClamp.retract(); //drop goal in corner
-
-	pros::delay(200);
-
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-48_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
-	chassis -> moveDistance(-24_in);
-
+	intake.move(127);
+	chassis->moveDistance(36_in);
+	turnAngle(-90);
+	chassis->moveDistance(-24_in);
 	mogoClamp.extend();
-
-	chassis -> setMaxVelocity(MAX_VELOCITY);
-
-	chassis -> turnAngle(90_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-48_in);
-
-	/**/
-
+	lift.move(127);
 }
 
 void dropGoalAuto(){
@@ -365,7 +326,6 @@ void opcontrol() {
 	chassis -> stop();
 	drivetrain -> stop();
 
-
 	master.rumble(".");
 	while (true) {
 		double leftY = master.get_analog(ANALOG_LEFT_Y) / 127.0;
@@ -396,22 +356,9 @@ void opcontrol() {
 			mogoClamp.toggle();
 		}
 
-		// if (master.get_digital(DIGITAL_RIGHT)) {
-		// 	skills_autonomous();
-		// }
-
 		if (master.get_digital_new_press(DIGITAL_L2)) { 
 			intakeFront = !intakeFront;
 		}
-
-
-		// if (master.get_digital(DIGITAL_UP)) { 
-		// 	ladyBrownGroup.moveVoltage(12000);
-		// } else if (master.get_digital(DIGITAL_DOWN)) {
-		// 	ladyBrownGroup.moveVoltage(-12000);
-		// } else {
-		// 	ladyBrownGroup.moveVoltage(0);
-		// }
 
 		if (master.get_digital_new_press(DIGITAL_DOWN)) {
 			ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
@@ -434,6 +381,10 @@ void opcontrol() {
 		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
 
 		// count++;
+		if (master.get_digital(DIGITAL_LEFT)) {
+			chassis -> moveDistance(24_in);
+		}
+
 		if(master.get_digital(DIGITAL_L1)){
 			drivetrain->arcade(dir, turn); 
 		} else {

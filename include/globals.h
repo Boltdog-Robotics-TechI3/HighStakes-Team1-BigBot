@@ -1,4 +1,6 @@
 #include "main.h"
+#define setMinAbs(num, bound) ((num > -(bound) && num < bound) ? ((num >= 0) ? bound : -(bound)) : num)
+
 // Comp Specifications
 extern bool skills;
 extern bool elim;
