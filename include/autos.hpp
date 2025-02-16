@@ -2,3 +2,4 @@
 
 void goalRush();
 void safeAuto();
+void skillsAuto();

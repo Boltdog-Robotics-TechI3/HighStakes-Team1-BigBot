@@ -25,6 +25,7 @@ void initialize() {
 
 	drivetrainInit();
 	ladyBrownInit();
+    lift.set_encoder_units(pros::MotorEncoderUnits::degrees);
 }
 
 /**
@@ -69,6 +70,7 @@ void autonomous() {
 		case 3:
 			break;
 		case 4:
+			skillsAuto();
 			break;
 		case 5:
 			//Do nothing
