@@ -9,3 +9,14 @@ extern bool redAlliance;
 extern bool blueAlliance;
 extern bool match;
 extern int autoSelection;
+
+extern pros::Controller master;
+extern pros::Motor lift;
+extern pros::Motor intake;
+
+extern okapi::Motor ladyBrownLeft;
+extern okapi::Motor ladyBrownRight;
+
+extern okapi::MotorGroup ladyBrownGroup;
+
+extern pros::adi::Pneumatics mogoClamp;

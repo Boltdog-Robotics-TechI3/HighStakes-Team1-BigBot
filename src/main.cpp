@@ -6,46 +6,8 @@ bool intakeFront = true;
 
 int teleOPCurrentLimit = 2200;
 
-pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor lift(-11);
-pros::Motor intake(-20);
-
-pros::IMU gyro(12);
-
-okapi::Motor frontRight(1);
-okapi::Motor backRight(2);
-okapi::Motor topRight(-3);
-
-okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(9);
-okapi::Motor topLeft(-10);
-
-okapi::MotorGroup right({frontRight, topRight, backRight});
-okapi::MotorGroup left({frontLeft, topLeft, backLeft});
-
-okapi::Motor ladyBrownLeft(-5);
-okapi::Motor ladyBrownRight(6);
-
-okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
-
-auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
-	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
-	.withGains(
-		{0.0015, 0.0, 0.0000005}, 
-		{3.15, 0, 1.5}, 
-		{0, 0, 0})
-	.build());
-
-std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
-
-pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
 
 //Init functions
-
-void drivetrainInit(){
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-}
 
 void ladyBrownInit(){
 	ladyBrownLeft.setVoltageLimit(7200);
@@ -63,48 +25,7 @@ void ladyBrownInit(){
 	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
 }
 
-void setDriveCurrentLimt(int limit){
-	frontLeft.setCurrentLimit(limit);
-	frontRight.setCurrentLimit(limit);
-	topLeft.setCurrentLimit(limit);
-	topRight.setCurrentLimit(limit);
-	backLeft.setCurrentLimit(limit);
-	backRight.setCurrentLimit(limit);
-}
 
-/// @brief Custom Turnangle Function
-/// @param angle angle in degrees
-/// @param timeout timeout before the robot gives up in seconds
-void turnAngle(float angle, int timeout = 10) {
-    auto gains = get<1>(chassis->getGains());
-
-    float target = angle + gyro.get_rotation();
-    float error = angle;
-	float previousError = 0;
-	float integral = 0;
-	float errorCounter = 0;
-	float precision = 1;
-	
-	auto exitTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(timeout);
-	while (errorCounter < 50 && std::chrono::high_resolution_clock::now() < exitTime) {
-		integral += error;
-		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 1);
-		right.moveVelocity(-velocity);
-		left.moveVelocity(velocity);
-		pros::delay(10);
-		//driverController.print(0,0,"%f", velocity);
-		previousError = error;
-		error = target - gyro.get_rotation();
-		if (abs(error) < precision) {
-			errorCounter++;
-		}
-		else {
-			errorCounter = 0;
-		}
-	}
-	right.moveVelocity(0);
-	left.moveVelocity(0);
-}
 
 /**
  * The autonomous path used for a skill run.
@@ -116,105 +37,7 @@ void turnAngle(float angle, int timeout = 10) {
  * - 4 ring on another mobile goal and place it in the corner
  * - Buddy climb
  */
-void cornerMoveFunct(void* param){
-	chassis -> moveDistanceAsync(-20_in);
-}
 
-
-void skills_autonomous() {
-	intake.move(127);
-	chassis->moveDistance(36_in);
-	turnAngle(-90);
-	chassis->moveDistance(-24_in);
-	mogoClamp.extend();
-	lift.move(127);
-}
-
-void dropGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-135_deg);
-	chassis -> moveDistance(-12_in);
-	mogoClamp.retract();
-	lift.move(0);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	chassis -> moveDistance(54_in);
-}
-
-void keepGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-145_deg);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	lift.move(0);
-	chassis -> moveDistance(54_in);
-}
-
-
-void keepGoalAutoElims(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-145_deg);
-	chassis -> moveDistance(-36_in);
-	return;
-}
 /**
  * A callback function for LLEMU's center button.
  *
@@ -271,25 +94,45 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	setDriveCurrentLimt(2200);
 	switch (autoSelection) {
 		case 0:
-			keepGoalAuto();
 			break;
 		case 1:
 			//Match Plus Side Drop Goal Auto
-			keepGoalAutoElims();
 			break;
 		case 2:
 			//Match Climb Goal Keep Goal Autowatch climb keep
-			dropGoalAuto();
 			break;
 		case 3:
 			//Match Climb Goal Drop Goal Selected
 			break;
 		case 4:
 			//Skills
-			skills_autonomous();
+			skillsAuto();
+			break;
+		case 5:
+			//Do nothing
+			break;
+	}
+}
+
+void autonomous2(int num) {
+	switch (num) {
+		case 0:
+
+			break;
+		case 1:
+			//Match Plus Side Drop Goal Auto
+			break;
+		case 2:
+			//Match Climb Goal Keep Goal Autowatch climb keep
+			break;
+		case 3:
+			//Match Climb Goal Drop Goal Selected
+			break;
+		case 4:
+			//Skills
+			skillsAuto();
 			break;
 		case 5:
 			//Do nothing
@@ -322,7 +165,6 @@ void opcontrol() {
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
 
-	setDriveCurrentLimt(teleOPCurrentLimit);
 	chassis -> stop();
 	drivetrain -> stop();
 
