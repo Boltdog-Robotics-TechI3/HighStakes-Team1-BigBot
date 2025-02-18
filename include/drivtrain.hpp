@@ -8,7 +8,7 @@ extern okapi::Motor frontLeft;
 extern okapi::Motor backLeft;
 extern okapi::Motor topLeft;
 
-extern pros::IMU gyro(12);
+extern pros::IMU gyro;
 
 extern std::shared_ptr<okapi::ChassisControllerPID> chassis;
 

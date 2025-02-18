@@ -1,4 +1,10 @@
 #include "main.h"
+
+extern int MAX_VELOCITY;
+
+
+extern int teleOPCurrentLimit;
+
 #define setMinAbs(num, bound) ((num > -(bound) && num < bound) ? ((num >= 0) ? bound : -(bound)) : num)
 
 // Comp Specifications
@@ -20,3 +26,4 @@ extern okapi::Motor ladyBrownRight;
 extern okapi::MotorGroup ladyBrownGroup;
 
 extern pros::adi::Pneumatics mogoClamp;
+extern pros::adi::Pneumatics rushMech;

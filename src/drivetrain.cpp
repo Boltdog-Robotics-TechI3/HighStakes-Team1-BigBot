@@ -13,9 +13,9 @@ okapi::MotorGroup left({frontLeft, topLeft, backLeft});
 
 pros::IMU gyro(12);
 
-auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
+std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
 	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
+	.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
 	.withGains(
 		{0.0015, 0.0, 0.0000005}, 
 		{3.15, 0, 1.5}, 
@@ -35,8 +35,8 @@ void setDriveCurrentLimt(int limit){
 
 /// @brief Custom Turnangle Function
 /// @param angle angle in degrees
-/// @param timeout timeout before the robot gives up in seconds
-void turnAngle(float angle, int timeout = 10) {
+/// @param timeout timeout before the robot gives up in seconds, default to 10
+void turnAngle(float angle, int timeout) {
     auto gains = get<1>(chassis->getGains());
 
     float target = angle + gyro.get_rotation();
@@ -49,7 +49,12 @@ void turnAngle(float angle, int timeout = 10) {
 	auto exitTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(timeout);
 	while (errorCounter < 50 && std::chrono::high_resolution_clock::now() < exitTime) {
 		integral += error;
-		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 1);
+		float velocity = gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral;
+		if (velocity < 0 && velocity > -10) {
+			velocity = -10;
+		} else if (velocity > 0 && velocity < 10) {
+			velocity = 10;
+		}
 		right.moveVelocity(-velocity);
 		left.moveVelocity(velocity);
 		pros::delay(10);

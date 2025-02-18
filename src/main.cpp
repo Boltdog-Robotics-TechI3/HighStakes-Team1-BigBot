@@ -1,10 +1,6 @@
 #include "main.h"
 
-const int MAX_VELOCITY = 600;
 
-bool intakeFront = true;
-
-int teleOPCurrentLimit = 2200;
 
 
 //Init functions
@@ -116,30 +112,6 @@ void autonomous() {
 	}
 }
 
-void autonomous2(int num) {
-	switch (num) {
-		case 0:
-
-			break;
-		case 1:
-			//Match Plus Side Drop Goal Auto
-			break;
-		case 2:
-			//Match Climb Goal Keep Goal Autowatch climb keep
-			break;
-		case 3:
-			//Match Climb Goal Drop Goal Selected
-			break;
-		case 4:
-			//Skills
-			skillsAuto();
-			break;
-		case 5:
-			//Do nothing
-			break;
-	}
-}
-
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -187,44 +159,40 @@ void opcontrol() {
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
 		if (master.get_digital(DIGITAL_R1)) { 
 			lift.move(127);
+			intake.move(127);
 		} else if (master.get_digital(DIGITAL_R2)) {
 			lift.move(-127);
+			intake.move(-127);
 		} else {
 			lift.move(0);
+			intake.move(0);
 		}
 		
 		//Toggle the goal clamp on the back (pneumatic clamp)
 		if (master.get_digital_new_press(DIGITAL_B)) { 
 			mogoClamp.toggle();
 		}
-
-		if (master.get_digital_new_press(DIGITAL_L2)) { 
-			intakeFront = !intakeFront;
+		if (master.get_digital_new_press(DIGITAL_A)) { 
+			rushMech.toggle();
 		}
 
-		if (master.get_digital_new_press(DIGITAL_DOWN)) {
-			ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
-		} else if (master.get_digital_new_press(DIGITAL_RIGHT)){
-			ladyBrownGroup.moveAbsolute(55, 60); //for grabbing rings
-		} else if (master.get_digital_new_press(DIGITAL_UP)){
-			ladyBrownGroup.moveAbsolute(255, 90); //score
-		}
-		// } else if(ladyBrownGroup.isStopped()){
-		// 	ladyBrownGroup.moveAbsolute(ladyBrownGroup.getPosition(), 30); //hold postion other wise
+		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
+		// 	ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
+		// } else if (master.get_digital_new_press(DIGITAL_RIGHT)){
+		// 	ladyBrownGroup.moveAbsolute(55, 60); //for grabbing rings
+		// } else if (master.get_digital_new_press(DIGITAL_UP)){
+		// 	ladyBrownGroup.moveAbsolute(255, 90); //score
 		// }
-		// if(count == 10){
-		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
-		// 			backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
-		// 			topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
-		// 	master.set_text(1, 1, std::to_string(avgCurr));
-			
-		// 	count = 0;
-		// }
-		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
 
 		// count++;
 		if (master.get_digital(DIGITAL_LEFT)) {
-			chassis -> moveDistance(24_in);
+			goalRushAuto();
+		}
+		if (master.get_digital(DIGITAL_UP)){
+			safePath();
+		}
+		if (master.get_digital(DIGITAL_RIGHT)) {
+			skillsAuto();
 		}
 
 		if(master.get_digital(DIGITAL_L1)){

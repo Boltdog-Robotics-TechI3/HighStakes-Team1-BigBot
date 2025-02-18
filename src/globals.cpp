@@ -1,4 +1,8 @@
 #include "main.h"
+
+int MAX_VELOCITY = 600;
+
+int teleOPCurrentLimit = 2200;
 // Comp Specifications
 bool skills = false;
 bool match = true;
