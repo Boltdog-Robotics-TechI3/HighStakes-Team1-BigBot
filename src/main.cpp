@@ -186,7 +186,8 @@ void opcontrol() {
 
 		// count++;
 		if (master.get_digital(DIGITAL_LEFT)) {
-			goalRushAuto();
+			//goalRushAuto();
+			turnAngle(90, 10);
 		}
 		if (master.get_digital(DIGITAL_UP)){
 			safePath();

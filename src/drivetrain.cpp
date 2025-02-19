@@ -18,7 +18,7 @@ std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast
 	.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
 	.withGains(
 		{0.0015, 0.0, 0.0000005}, 
-		{3.15, 0, 1.5}, 
+		{3.15, 0.0001, 1.5}, 
 		{0, 0, 0})
 	.build());
 
@@ -50,11 +50,11 @@ void turnAngle(float angle, int timeout) {
 	while (errorCounter < 50 && std::chrono::high_resolution_clock::now() < exitTime) {
 		integral += error;
 		float velocity = gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral;
-		if (velocity < 0 && velocity > -10) {
+		/*if (velocity < 0 && velocity > -10) {
 			velocity = -10;
 		} else if (velocity > 0 && velocity < 10) {
 			velocity = 10;
-		}
+		}*/
 		right.moveVelocity(-velocity);
 		left.moveVelocity(velocity);
 		pros::delay(10);
