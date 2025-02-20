@@ -78,7 +78,7 @@ void opcontrol(void);
 //#include <iostream>
 #include "globals.h"
 #include "screen.h"
-#include "drivtrain.hpp"
+#include "drivetrain.hpp"
 #include "autos.hpp"
 
 #endif
