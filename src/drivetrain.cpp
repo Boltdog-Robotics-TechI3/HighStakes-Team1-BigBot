@@ -1,5 +1,4 @@
 #include "main.h"
-#include <iostream>
 
 okapi::Motor frontRight(1);
 okapi::Motor backRight(2);
@@ -34,20 +33,25 @@ void setDriveCurrentLimt(int limit){
 	backRight.setCurrentLimit(limit);
 }
 
+/// @brief Turns the robot to an absolute heading using PID control
+/// @param heading The heading to turn to
+/// @param timeout Timeout before the robot gives up in seconds, default to 10
 void turnToHeading(float heading, int timeout) {
 	float currentHeading = gyro.get_heading();
-	float error = currentHeading - heading;
+	float error = heading - currentHeading;
 	
 	if (error > 180) {
-		error = 360 - error;
+		error = error - 360;
+	} else if (error < -180) {
+		error = 360 + error;
 	}
-	master.print(0, 0, "%f", error);
-	turnAngle(error);
+	//master.print(0, 0, "%f", error);
+	turnAngle(error, timeout);
 }
 
-/// @brief Custom Turnangle Function
-/// @param angle angle in degrees
-/// @param timeout timeout before the robot gives up in seconds, default to 10
+/// @brief Turns the robot a specified distance using PID control
+/// @param angle Amount to turn in degrees
+/// @param timeout Timeout before the robot gives up in seconds, default to 10
 void turnAngle(float angle, int timeout) {
     auto gains = get<1>(chassis->getGains());
 
