@@ -53,6 +53,8 @@ void initialize() {
 
 	drivetrainInit();
 	ladyBrownInit();
+	lift.set_gearing(pros::MotorGear::green);
+	lift.set_encoder_units(pros::MotorEncoderUnits::degrees);
 }
 
 /**
@@ -157,15 +159,21 @@ void opcontrol() {
 		// }
 
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
-		if (master.get_digital(DIGITAL_R1)) { 
-			lift.move(127);
-			intake.move(127);
-		} else if (master.get_digital(DIGITAL_R2)) {
-			lift.move(-127);
-			intake.move(-127);
+		if(!isSorting){
+			if (master.get_digital(DIGITAL_R1)) { 
+				colorSorting();
+				intake.move(127);
+			} else if (master.get_digital(DIGITAL_R2)) {
+				lift.move(-127);
+				intake.move(-127);
+			} else {
+				lift.move(0);
+				intake.move(0);
+			}
 		} else {
-			lift.move(0);
-			intake.move(0);
+			if(lift.get_actual_velocity() == 0){
+				isSorting = false;
+			}
 		}
 		
 		//Toggle the goal clamp on the back (pneumatic clamp)
@@ -186,14 +194,15 @@ void opcontrol() {
 
 		// count++;
 		if (master.get_digital(DIGITAL_LEFT)) {
-			//goalRushAuto();
-			turnAngle(90, 10);
+			goalRushAuto();
+			// turnAngle(90, 10);
 		}
 		if (master.get_digital(DIGITAL_UP)){
 			safePath();
 		}
 		if (master.get_digital(DIGITAL_RIGHT)) {
-			skillsAuto();
+			//skillsAuto();
+			turnToHeading(90, 10);
 		}
 
 		if(master.get_digital(DIGITAL_L1)){

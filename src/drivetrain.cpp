@@ -1,4 +1,5 @@
 #include "main.h"
+#include <iostream>
 
 okapi::Motor frontRight(1);
 okapi::Motor backRight(2);
@@ -18,7 +19,7 @@ std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast
 	.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
 	.withGains(
 		{0.0015, 0.0, 0.0000005}, 
-		{3.15, 0.0001, 1.5}, 
+		{3.15, 0.0000, 1.5}, 
 		{0, 0, 0})
 	.build());
 
@@ -33,6 +34,17 @@ void setDriveCurrentLimt(int limit){
 	backRight.setCurrentLimit(limit);
 }
 
+void turnToHeading(float heading, int timeout) {
+	float currentHeading = gyro.get_heading();
+	float error = currentHeading - heading;
+	
+	if (error > 180) {
+		error = 360 - error;
+	}
+	master.print(0, 0, "%f", error);
+	turnAngle(error);
+}
+
 /// @brief Custom Turnangle Function
 /// @param angle angle in degrees
 /// @param timeout timeout before the robot gives up in seconds, default to 10
@@ -45,19 +57,18 @@ void turnAngle(float angle, int timeout) {
 	float integral = 0;
 	float errorCounter = 0;
 	float precision = 1;
+
+	float windUp = 5;
 	
 	auto exitTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(timeout);
-	while (errorCounter < 50 && std::chrono::high_resolution_clock::now() < exitTime) {
-		integral += error;
-		float velocity = gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral;
-		/*if (velocity < 0 && velocity > -10) {
-			velocity = -10;
-		} else if (velocity > 0 && velocity < 10) {
-			velocity = 10;
-		}*/
+	while (errorCounter < 40 && std::chrono::high_resolution_clock::now() < exitTime) {
+ 		pros::delay(10);
+		if (abs(error) < windUp){
+			integral += error;	
+		}
+		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 1);
 		right.moveVelocity(-velocity);
 		left.moveVelocity(velocity);
-		pros::delay(10);
 		//driverController.print(0,0,"%f", velocity);
 		previousError = error;
 		error = target - gyro.get_rotation();

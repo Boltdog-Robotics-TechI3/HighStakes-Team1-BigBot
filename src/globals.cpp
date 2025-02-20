@@ -12,10 +12,15 @@ bool redAlliance = false;
 bool blueAlliance = true;
 int autoSelection = 0; 
 
+bool isSorting = false;
+
+
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor lift(-11);
 pros::Motor intake(-20);
+
+pros::Optical optical(7);
 
 okapi::Motor ladyBrownLeft(-5);
 okapi::Motor ladyBrownRight(6);
@@ -24,3 +29,21 @@ okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
 
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('H', false);
 pros::adi::Pneumatics rushMech = pros::adi::Pneumatics('G', false);
+
+void colorSorting(){
+    if(blueAlliance){
+        if(optical.get_hue() > 0 && optical.get_hue() < 25){
+            lift.move_relative(645.0, 10000000);
+            isSorting = true;
+        } else {
+            lift.move(127);
+        }
+    } else {
+        if(optical.get_hue() > 130 && optical.get_hue() < 230){
+            lift.move_relative(645.0, 10000000);
+            isSorting = true;
+        } else {
+            lift.move(127);
+        }
+    }
+}

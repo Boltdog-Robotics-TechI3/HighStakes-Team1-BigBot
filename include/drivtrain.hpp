@@ -16,6 +16,8 @@ extern std::shared_ptr<ChassisModel> drivetrain;
 
 void setDriveCurrentLimt(int limit);
 
+void turnToHeading(float angle, int timeout=10);
+
 void turnAngle(float angle, int timeout = 10);
 
 void drivetrainInit();
