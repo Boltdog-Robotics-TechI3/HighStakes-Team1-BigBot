@@ -201,8 +201,10 @@ void opcontrol() {
 			safePath();
 		}
 		if (master.get_digital(DIGITAL_RIGHT)) {
-			//skillsAuto();
-			turnToHeading(90, 10);
+			skillsAuto();	
+		}
+		if (master.get_digital_new_press(DIGITAL_DOWN)) {
+			bruhAuto();	
 		}
 
 		if(master.get_digital(DIGITAL_L1)){

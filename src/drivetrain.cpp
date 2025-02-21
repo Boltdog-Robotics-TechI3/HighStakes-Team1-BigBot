@@ -17,9 +17,10 @@ std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast
 	.withMotors(left, right)
 	.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
 	.withGains(
-		{0.0015, 0.0, 0.0000005}, 
-		{3.15, 0.0000, 1.5}, 
+		{0.0017, 0.0, 0.0000005}, 
+		{2.80, 0.0000, 1}, 
 		{0, 0, 0})
+	.withClosedLoopControllerTimeUtil()
 	.build());
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
@@ -65,12 +66,12 @@ void turnAngle(float angle, int timeout) {
 	float windUp = 5;
 	
 	auto exitTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(timeout);
-	while (errorCounter < 40 && std::chrono::high_resolution_clock::now() < exitTime) {
- 		pros::delay(10);
+	while (errorCounter < 100 && std::chrono::high_resolution_clock::now() < exitTime) {
+		pros::delay(10);
 		if (abs(error) < windUp){
 			integral += error;	
 		}
-		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 1);
+		float velocity = setMinAbs((gains.kP * error + (error - previousError) * gains.kD + gains.kI * integral), 2);
 		right.moveVelocity(-velocity);
 		left.moveVelocity(velocity);
 		//driverController.print(0,0,"%f", velocity);
@@ -89,4 +90,6 @@ void turnAngle(float angle, int timeout) {
 
 void drivetrainInit(){
 	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+	gyro.reset();
+	while(gyro.is_calibrating());
 }

@@ -47,3 +47,13 @@ void colorSorting(){
         }
     }
 }
+
+void intakeUntilColor(){
+    lift.move(127);
+    if(!blueAlliance){
+        while (!(optical.get_hue() > 0 && optical.get_hue() < 25));
+    } else {
+        while (!(optical.get_hue() > 130 && optical.get_hue() < 230));
+    }
+    lift.brake();
+    }

@@ -6,3 +6,7 @@ void skillsAuto();
 void goalRushAuto();
 
 void safePath();
+
+void intakeUntilColor();
+
+void bruhAuto();
