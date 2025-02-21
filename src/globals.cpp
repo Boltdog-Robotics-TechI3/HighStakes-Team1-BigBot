@@ -8,8 +8,8 @@ bool skills = false;
 bool match = true;
 bool elim = false;
 bool qual = true;
-bool redAlliance = false;
-bool blueAlliance = true;
+bool redAlliance = true;
+bool blueAlliance = false;
 int autoSelection = 0; 
 
 bool isSorting = false;
@@ -51,9 +51,10 @@ void colorSorting(){
 void intakeUntilColor(){
     lift.move(127);
     if(!blueAlliance){
-        while (!(optical.get_hue() > 0 && optical.get_hue() < 25));
+        while (!(optical.get_hue() > 0 && optical.get_hue() < 25)) pros::delay(20);
     } else {
-        while (!(optical.get_hue() > 130 && optical.get_hue() < 230));
+        while (!(optical.get_hue() > 130 && optical.get_hue() < 230)) pros::delay(20);
     }
-    lift.brake();
-    }
+    lift.move(0);
+    pros::delay(100000);
+}

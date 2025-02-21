@@ -194,12 +194,12 @@ void opcontrol() {
 
 		// count++;
 		if (master.get_digital(DIGITAL_LEFT)) {
-			goalRushAuto();
+			goalRushAutoBlue();
 			// turnAngle(90, 10);
 		}
-		if (master.get_digital(DIGITAL_UP)){
-			safePath();
-		}
+		// if (master.get_digital(DIGITAL_UP)){
+		// 	safePath();
+		// }
 		if (master.get_digital(DIGITAL_RIGHT)) {
 			skillsAuto();	
 		}

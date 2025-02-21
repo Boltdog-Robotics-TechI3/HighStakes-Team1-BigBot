@@ -3,7 +3,8 @@
 
 void skillsAuto();
 
-void goalRushAuto();
+void goalRushAutoRed();
+void goalRushAutoBlue();
 
 void safePath();
 
