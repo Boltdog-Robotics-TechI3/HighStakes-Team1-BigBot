@@ -6,17 +6,13 @@
 //Init functions
 
 void ladyBrownInit(){
-	ladyBrownLeft.setVoltageLimit(7200);
-	ladyBrownRight.setVoltageLimit(7200);
-
 	ladyBrownLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 	ladyBrownRight.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 
-	ladyBrownLeft.setReversed(false);
-	ladyBrownRight.setReversed(true);
+	ladyBrownLeft.setReversed(true);
+	ladyBrownRight.setReversed(false);
 
 	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
-	ladyBrownGroup.setVoltageLimit(7200);
 
 	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
 }
@@ -55,6 +51,7 @@ void initialize() {
 	ladyBrownInit();
 	lift.set_gearing(pros::MotorGear::green);
 	lift.set_encoder_units(pros::MotorEncoderUnits::degrees);
+	lift.set_brake_mode(pros::MotorBrake::brake);
 }
 
 /**
@@ -78,7 +75,9 @@ void disabled() {
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -94,9 +93,11 @@ void competition_initialize() {}
 void autonomous() {
 	switch (autoSelection) {
 		case 0:
+			goalRushAutoRed();
 			break;
 		case 1:
 			//Match Plus Side Drop Goal Auto
+			goalRushAutoBlue();
 			break;
 		case 2:
 			//Match Climb Goal Keep Goal Autowatch climb keep
@@ -138,9 +139,10 @@ void opcontrol() {
 	//A button controls intake and lift
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
-
+	int count = 0;
 	chassis -> stop();
 	drivetrain -> stop();
+	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
 	master.rumble(".");
 	while (true) {
@@ -158,6 +160,8 @@ void opcontrol() {
 		// 	turn = pow(rightX, 3);  // Gets the turn left/right from right joystick
 		// }
 
+
+		
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
 		if(!isSorting){
 			if (master.get_digital(DIGITAL_R1)) { 
@@ -166,13 +170,19 @@ void opcontrol() {
 			} else if (master.get_digital(DIGITAL_R2)) {
 				lift.move(-127);
 				intake.move(-127);
+			} else if (master.get_digital(DIGITAL_L1)){
+				intake.move(127);
 			} else {
 				lift.move(0);
 				intake.move(0);
 			}
 		} else {
 			if(lift.get_actual_velocity() == 0){
-				isSorting = false;
+				if(count > 5){
+					isSorting = false;
+					count = 0;
+				}
+				count++;
 			}
 		}
 		
@@ -184,6 +194,10 @@ void opcontrol() {
 			rushMech.toggle();
 		}
 
+		if (master.get_digital_new_press(DIGITAL_X) && master.get_digital_new_press(DIGITAL_Y) && master.get_digital_new_press(DIGITAL_L2)) { 
+			autonomous();
+		}
+
 		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
 		// 	ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
 		// } else if (master.get_digital_new_press(DIGITAL_RIGHT)){
@@ -193,21 +207,30 @@ void opcontrol() {
 		// }
 
 		// count++;
-		if (master.get_digital(DIGITAL_LEFT)) {
-			goalRushAutoBlue();
-			// turnAngle(90, 10);
-		}
-		// if (master.get_digital(DIGITAL_UP)){
-		// 	safePath();
+		// if (master.get_digital(DIGITAL_LEFT)) {
+		// 	goalRushAutoBlue();
+		// 	// turnAngle(90, 10);
 		// }
-		if (master.get_digital(DIGITAL_RIGHT)) {
-			skillsAuto();	
-		}
-		if (master.get_digital_new_press(DIGITAL_DOWN)) {
-			bruhAuto();	
+		// // if (master.get_digital(DIGITAL_UP)){
+		// // 	safePath();
+		// // }
+		// if (master.get_digital(DIGITAL_RIGHT)) {
+		// 	skillsAuto();	
+		// }
+		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
+		// 	bruhAuto();	
+		// }
+
+		if(master.get_digital_new_press(DIGITAL_UP)){
+			pros::Task ladyUp(ladyBrownScore);
+		} else if(master.get_digital_new_press(DIGITAL_DOWN)){
+			pros::Task ladyDown(ladyBrownDown);
+		} else if(master.get_digital(DIGITAL_RIGHT)){
+			ladyBrownPrime();
+		} else if(ladyBrownGroup.isStopped()){
 		}
 
-		if(master.get_digital(DIGITAL_L1)){
+		if(!master.get_digital(DIGITAL_L2)){
 			drivetrain->arcade(dir, turn); 
 		} else {
 			drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.

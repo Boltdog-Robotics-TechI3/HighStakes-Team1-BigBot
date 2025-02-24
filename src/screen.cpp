@@ -16,10 +16,10 @@ void initializeScreen() {
     textBox1 = lv_label_create(lv_scr_act());
     lv_obj_set_size(textBox1, screenWidth, textBoxHeight);
     lv_obj_align(textBox1, LV_ALIGN_TOP_MID, 0, 0); // Align to the top
-    lv_label_set_text(textBox1, "Blue side is selected");
+    lv_label_set_text(textBox1, "Red side is selected");
     lv_label_set_long_mode(textBox1, LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_align(textBox1, LV_TEXT_ALIGN_CENTER, 0);
-    styleTextBox(textBox1, lv_palette_main(LV_PALETTE_BLUE)); 
+    styleTextBox(textBox1, lv_palette_main(LV_PALETTE_RED)); 
 
     // Text Box 2
     textBox2 = lv_label_create(lv_scr_act());
@@ -34,7 +34,7 @@ void initializeScreen() {
     textBox3 = lv_label_create(lv_scr_act());
     lv_obj_set_size(textBox3, screenWidth, textBoxHeight);
     lv_obj_align(textBox3, LV_ALIGN_TOP_MID, 0, textBoxHeight * 2); // Align below Text Box 2
-    lv_label_set_text(textBox3, "0 - keep goal matchs");
+    lv_label_set_text(textBox3, "0 -RED GOAL");
     lv_label_set_long_mode(textBox3, LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_align(textBox3, LV_TEXT_ALIGN_CENTER, 0);
     styleTextBox(textBox3, lv_palette_main(LV_PALETTE_BLUE_GREY)); // Green fill color
@@ -141,12 +141,12 @@ void onRightButton() {
 		case 0: 
 			// Auto where we rush for the plus side goal, grab it, 
 			// then score rings on it and drop it off in the corner.
-			updateTextBox(textBox3, "0 -keep goal");
+			updateTextBox(textBox3, "0 -RED GOAL RUSH");
 			break;
 		case 1: 
 			// Auto where we rush for the plus side goal, grab it, 
 			// then drop it off and go for the alliance side goal instead.
-			updateTextBox(textBox3, "1 - do nothing");
+			updateTextBox(textBox3, "1 - BLUE GOAL RUSh ");
 			break;
 		case 2: 
 			updateTextBox(textBox3, "2 - Match Drop Gaol");

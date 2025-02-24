@@ -20,6 +20,7 @@
 //😱
 // TODO: Set headings at the beginning of autos
 void skillsAuto() {
+	gyro.set_heading(0);
 	// grab first ring
 	chassis -> setGains(
 		{0.0017, 0.0, 0.0000005}, 
@@ -120,25 +121,43 @@ void grabGoal(void* param) {
 }
 
 void goalRushAutoRed() {
+	chassis -> setGains(
+		{0.0017, 0.0, 0.0000005}, 
+		{3.0, 0.001, 1}, 
+		{0, 0, 0}
+	);
 	gyro.set_heading(15);
 	chassis -> moveDistanceAsync(34_in);
-	pros::delay(1000);
+	pros::delay(800);
 	rushMech.extend();
-	chassis -> moveDistance(-10_in);
+	chassis -> moveDistanceAsync(-10_in);
+	pros::delay(500);
+	chassis -> stop();
 	rushMech.retract();
 	chassis -> moveDistance(-5_in);
-	turnToHeading(205);
+	turnAngle(195);
 	chassis -> setMaxVelocity(MAX_VELOCITY * .4);
 	chassis -> moveDistance(-16_in);
 	mogoClamp.extend();
 	lift.move(127);
+	pros::delay(1000);
 	intake.move(127);
+	pros::Task liftMove(intakeUntilColor);
+	
 	turnToHeading(175);
 	chassis -> moveDistance(36_in);
+	// pros::delay(2000);
+	// lift.move(0);
+	// intake.move(0);
+	// turnToHeading(320);
+
 	pros::delay(2000);
 	lift.move(0);
 	intake.move(0);
 	turnToHeading(320);
+	lift.move(127);
+	
+
 	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
 	chassis -> moveDistanceAsync(-16_in);
 	pros::delay(2500);
@@ -147,49 +166,61 @@ void goalRushAutoRed() {
 	mogoClamp.retract();
 	pros::delay(100);
 	chassis -> setMaxVelocity(MAX_VELOCITY);
-	chassis -> moveDistanceAsync(50_in);
-	ladyBrownGroup.moveVoltage(-12000);
+	// chassis -> moveDistanceAsync(50_in);
+	// ladyBrownGroup.moveVoltage(-12000);
 	pros::delay(500);
-	ladyBrownGroup.moveVoltage(0);
+	// ladyBrownGroup.moveVoltage(0);
 	pros::delay(5000);
 	chassis -> stop();
 	drivetrain -> stop();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
-	chassis -> moveDistanceAsync(3_in);
+	// chassis -> setMaxVelocity(MAX_VELOCITY * .2);
+	// chassis -> moveDistanceAsync(8_in);
+
 	pros::delay(10000);
 
 }
 
 void goalRushAutoBlue() {
+	chassis -> setGains(
+		{0.0017, 0.0, 0.0000005}, 
+		{3.0, 0.001, 1}, 
+		{0, 0, 0}
+	);
 	gyro.set_heading(15);
 	chassis -> moveDistanceAsync(34_in);
-	pros::delay(1000);
+	pros::delay(800);
 	rushMech.extend();
-	chassis -> moveDistance(-10_in);
+	chassis -> moveDistanceAsync(-10_in);
+	pros::delay(500);
+	chassis -> stop();
 	rushMech.retract();
 	chassis -> moveDistance(-5_in);
-	turnToHeading(205);
+	turnAngle(195);
 	chassis -> setMaxVelocity(MAX_VELOCITY * .4);
 	chassis -> moveDistance(-16_in);
 	mogoClamp.extend();
 	lift.move(127);
+	pros::delay(1000);
 	intake.move(127);
+	pros::Task liftMove(intakeUntilColor);
+	
 	turnToHeading(175);
+	
 	chassis -> moveDistance(36_in);
 	pros::delay(2000);
 	lift.move(0);
 	intake.move(0);
 	turnToHeading(320);
-	
-	chassis -> moveDistanceAsync(34_in);
-	ladyBrownGroup.moveVoltage(-12000);
-	pros::delay(500);
-	ladyBrownGroup.moveVoltage(0);
-	pros::delay(5000);
+	lift.move(127);
+	// chassis -> moveDistanceAsync(34_in);
+	// ladyBrownGroup.moveVoltage(-12000);
+	// pros::delay(500);
+	// ladyBrownGroup.moveVoltage(0);
+	// pros::delay(5000);
 	chassis -> stop();
 	drivetrain -> stop();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
-	chassis -> moveDistanceAsync(7_in);
+	// chassis -> setMaxVelocity(MAX_VELOCITY * .2);
+	// chassis -> moveDistanceAsync(7_in);
 	pros::delay(10000);
 
 }

@@ -34,3 +34,13 @@ extern pros::adi::Pneumatics mogoClamp;
 extern pros::adi::Pneumatics rushMech;
 
 void colorSorting();
+
+void intakeUntilColor();
+
+void colorSortingAuto();
+
+void ladyBrownScore();
+
+void ladyBrownDown();
+
+void ladyBrownPrime();
