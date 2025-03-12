@@ -15,10 +15,27 @@ extern std::shared_ptr<okapi::ChassisControllerPID> chassis;
 
 extern std::shared_ptr<ChassisModel> drivetrain;
 
+struct PID {
+    double kP;
+    double kI;
+    double kD;
+    double smallErrorRange;
+    double smallErrorTimeout;
+    double largeErrorRange;
+    double largeErrorTimeout;
+    double minVelocity;
+};
+
+enum class TurnBehavior {
+    DEFAULT,
+    LEFT,
+    RIGHT
+};
+
 void setDriveCurrentLimit(int limit);
 
-void turnToHeading(float angle, int timeout=10);
+void turnToHeading(double heading, double maxVelocity=1.0, int timeout=5000, enum TurnBehavior behavior=TurnBehavior::DEFAULT);
 
-void turnAngle(float angle, int timeout=10);
+void turnAngle(double angle, double maxVelocity=1.0, int timeout=5000);
 
 void drivetrainInit();
