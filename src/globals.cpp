@@ -48,7 +48,12 @@ void colorSorting(){
             lift.move(127);
             hasBadRing = true;
         } else if (!seesRed() && hasBadRing) {
-            lift.move_relative(150, 10000);
+            lift.move(127);
+            pros::delay(125);
+            lift.move(-127);
+            pros::delay(150);
+            lift.move(0);
+            pros::delay(150);
             isSorting = true;
             hasBadRing =false;
         }  else {

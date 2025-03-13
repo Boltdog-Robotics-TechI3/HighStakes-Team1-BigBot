@@ -20,6 +20,7 @@
 //😱
 // TODO: Set headings at the beginning of autos
 void skillsAuto() {
+	master.set_text(0, 0, "Alliance: " + std::to_string(blueAlliance));
 	gyro.set_heading(0);
 	// grab first ring
 	chassis -> setGains(
@@ -253,6 +254,7 @@ void newSkillsAuto(){
 	pros::Task task(intakeUntilColor);
 	chassis->moveDistanceAsync(36_in); //drive into first ring (async bc move was not finishing sometimes)
 	pros::delay(1000); //stop async move
+	chassis -> stop();
 	turnToHeading(315); //face center ring
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.5);
 	chassis -> moveDistance(19_in);
@@ -282,11 +284,10 @@ void newSkillsAuto(){
 
 	chassis -> setMaxVelocity(MAX_VELOCITY);
 	turnToHeading(315); //face mogo to corner
+	mogoClamp.retract(); //drop goal
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
 	chassis->moveDistanceAsync(-24_in); //back into corner
 	pros::delay(1400);
-	mogoClamp.retract(); //drop goal
-	pros::delay(100);
 	chassis->setMaxVelocity(MAX_VELOCITY*0.7);
 
 //pick up 2 more rings on the other side of the field
@@ -310,20 +311,19 @@ void newSkillsAuto(){
 	turnToHeading(0);
 	chassis->moveDistance(24_in);//Take in ring
 	turnToHeading(90);
-	chassis->moveDistance(20_in);//Take in another ring
+	chassis->moveDistance(16_in);//Take in another ring
 	turnToHeading(225);
+	mogoClamp.retract();
 
 	colorsort.suspend();
 	intake.move(0);
 	lift.move(0);
 
 //Drop mogo2 in the corner slowly (rings are still there)
-	chassis->setMaxVelocity(MAX_VELOCITY * 0.2);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.45);
 	chassis->moveDistanceAsync(-21_in);
 	pros::delay(1500);
 	chassis->stop();
-	mogoClamp.retract();
-	pros::delay(200);
 	chassis->moveDistance(10_in);
 
 //Grab third mogo
@@ -331,12 +331,13 @@ void newSkillsAuto(){
 	turnToHeading(90);
 	chassis->moveDistance(-36_in);
 	mogoClamp.extend();
-	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
+	pros::delay(100);
+	chassis->setMaxVelocity(MAX_VELOCITY);
 	chassis->moveDistance(12_in);
 	turnToHeading(140);
 	lift.move(127);
 	intake.move(127);
-	chassis->moveDistance(56_in);
+	chassis->moveDistance(60_in);
 
 	pros::delay(10000); //delay so the auto doesnt end too early
 }

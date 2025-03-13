@@ -91,28 +91,30 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-	switch (autoSelection) {
-		case 0:
-			goalRushAutoRed();
-			break;
-		case 1:
-			//Match Plus Side Drop Goal Auto
-			goalRushAutoBlue();
-			break;
-		case 2:
-			//Match Climb Goal Keep Goal Autowatch climb keep
-			break;
-		case 3:
-			//Match Climb Goal Drop Goal Selected
-			break;
-		case 4:
-			//Skills
-			skillsAuto();
-			break;
-		case 5:
-			//Do nothing
-			break;
-	}
+	newSkillsAuto();
+
+	// switch (autoSelection) {
+	// 	case 0:
+	// 		goalRushAutoRed();
+	// 		break;
+	// 	case 1:
+	// 		//Match Plus Side Drop Goal Auto
+	// 		goalRushAutoBlue();
+	// 		break;
+	// 	case 2:
+	// 		//Match Climb Goal Keep Goal Autowatch climb keep
+	// 		break;
+	// 	case 3:
+	// 		//Match Climb Goal Drop Goal Selected
+	// 		break;
+	// 	case 4:
+	// 		//Skills
+	// 		skillsAuto();
+	// 		break;
+	// 	case 5:
+	// 		//Do nothing
+	// 		break;
+	// }
 }
 
 /**
