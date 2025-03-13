@@ -199,9 +199,9 @@ void opcontrol() {
 		if (master.get_digital_new_press(DIGITAL_X) && master.get_digital_new_press(DIGITAL_Y)) { 
 			newSkillsAuto();
 		}
-		if ( master.get_digital_new_press(DIGITAL_LEFT) && master.get_digital_new_press(DIGITAL_Y)){
-			bruhAuto();
-		}
+		// if ( master.get_digital_new_press(DIGITAL_LEFT) && master.get_digital_new_press(DIGITAL_Y)){
+		// 	bruhAuto();
+		// }
 
 		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
 		// 	ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm

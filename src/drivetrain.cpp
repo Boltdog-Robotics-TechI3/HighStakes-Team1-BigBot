@@ -46,13 +46,13 @@ PID lateralPID = {
 };
 // PID constants for turning
 PID turnPID = {
-    .kP = 2.5,
+    .kP = 3,
     .kI = 0.0,
-    .kD = 0.0,
+    .kD = 0.1,
     .smallErrorRange = 0.4, // degrees
     .smallErrorTimeout = 100.0, // milliseconds
-    .largeErrorRange = 0.75, // degrees
-    .largeErrorTimeout = 500.0, // milliseconds
+    .largeErrorRange = 1.0, // degrees
+    .largeErrorTimeout = 400.0, // milliseconds
     .minVelocity = 3.0
 };
 

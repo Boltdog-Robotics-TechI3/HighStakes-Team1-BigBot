@@ -275,7 +275,7 @@ void newSkillsAuto(){
 	
 	turnToHeading(145); //face the corner and 4th ring
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.35);
-	chassis->moveDistanceAsync(20_in); //move into corner async so there is a timeout
+	chassis->moveDistanceAsync(24_in); //move into corner async so there is a timeout
 	pros::delay(1500);
 	chassis->stop();
 	chassis->moveDistance(-18_in); //back out of corner
@@ -283,17 +283,19 @@ void newSkillsAuto(){
 	chassis -> setMaxVelocity(MAX_VELOCITY);
 	turnToHeading(315); //face mogo to corner
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
-	chassis->moveDistanceAsync(-22_in); //back into corner
+	chassis->moveDistanceAsync(-24_in); //back into corner
 	pros::delay(1400);
 	mogoClamp.retract(); //drop goal
 	pros::delay(100);
-	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
+	chassis->setMaxVelocity(MAX_VELOCITY*0.7);
 
 //pick up 2 more rings on the other side of the field
 	chassis -> moveDistance(20_in); //back away from corner
 	turnToHeading(0); //turn back towards more rings
-	pros::Task getColor(intakeUntilColor); 
-	chassis->moveDistance(62_in); //Collect 2 rings ahead
+	pros::Task getColor(intakeUntilColor);
+	chassis->setMaxVelocity(MAX_VELOCITY);
+	chassis->moveDistanceAsync(62_in); //Collect 2 rings ahead
+	pros::delay(2000);
 	turnToHeading(90);
 
 //Grab mogo 2
@@ -308,10 +310,12 @@ void newSkillsAuto(){
 	turnToHeading(0);
 	chassis->moveDistance(24_in);//Take in ring
 	turnToHeading(90);
-	chassis->moveDistance(22_in);//Take in another ring
+	chassis->moveDistance(20_in);//Take in another ring
 	turnToHeading(225);
 
 	colorsort.suspend();
+	intake.move(0);
+	lift.move(0);
 
 //Drop mogo2 in the corner slowly (rings are still there)
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.2);
@@ -323,7 +327,7 @@ void newSkillsAuto(){
 	chassis->moveDistance(10_in);
 
 //Grab third mogo
-	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.6);
 	turnToHeading(90);
 	chassis->moveDistance(-36_in);
 	mogoClamp.extend();
