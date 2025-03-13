@@ -14,7 +14,7 @@ int autoSelection = 0;
 
 bool isSorting = false;
 
-int ladyBrownPrimed = -160;
+int ladyBrownPrimed = -150;
 bool ladyBrownUp = false;
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
@@ -75,13 +75,15 @@ void colorSorting(){
 
 void intakeUntilColor(){
     lift.move(127);
+    optical.set_led_pwm(100);
+
     if(!blueAlliance){
         while (!(optical.get_hue() > 0 && optical.get_hue() < 25)) pros::delay(20);
     } else {
         while (!(optical.get_hue() > 180 && optical.get_hue() < 230)) pros::delay(20);
     }
     lift.move(0);
-    intake.move(0);
+    // intake.move(0);
 }
 
 void colorSortingAuto(){

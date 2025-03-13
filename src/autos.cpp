@@ -244,3 +244,53 @@ void bruhAuto(){
 
 	pros::delay(100000);
 }
+
+void newSkillsAuto(){
+	gyro.set_heading(0);
+
+//stage 2 rings
+	intake.move(127);
+	pros::Task task(intakeUntilColor);
+	chassis->moveDistanceAsync(36_in); //drive into first ring (async bc move was not finishing sometimes)
+	pros::delay(1000); //stop async move
+	turnToHeading(315); //face center ring
+	chassis -> moveDistance(17_in);
+	chassis -> moveDistance(-18_in); //grab ring
+
+//grab mogo
+	turnToHeading(270); //face mogo with back
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
+	chassis -> moveDistance(-21_in);
+	mogoClamp.extend(); //grab mogo
+
+// score 2 staged ring and grab 2 more
+	intake.move(127);
+	lift.move(127); //scoring 2 staged rings
+
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
+	turnToHeading(180); //face 3rd ring
+	chassis->moveDistance(24_in);
+	
+	turnToHeading(145); //face the corner and 4th ring
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.35);
+	chassis->moveDistanceAsync(20_in); //move into corner async so there is a timeout
+	pros::delay(1500);
+	chassis->stop();
+	chassis->moveDistance(-18_in); //back out of corner
+
+	chassis -> setMaxVelocity(MAX_VELOCITY);
+	turnToHeading(315); //face mogo to corner
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.75);
+	chassis->moveDistanceAsync(-22_in); //back into corner
+	pros::delay(1400);
+	mogoClamp.retract(); //drop goal
+	pros::delay(100);
+
+//pick up 2 more rings on the other side of the field
+	chassis -> moveDistance(18_in);
+	turnToHeading(0);
+	//intakeUntilColor();
+	//intakeUntilColor();
+
+	pros::delay(10000); //delay so the auto doesnt end too early
+}

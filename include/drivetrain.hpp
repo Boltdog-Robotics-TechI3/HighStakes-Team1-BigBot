@@ -15,6 +15,15 @@ extern std::shared_ptr<okapi::ChassisControllerPID> chassis;
 
 extern std::shared_ptr<ChassisModel> drivetrain;
 
+struct Drivetrain {
+    okapi::MotorGroup *leftMotors;
+    okapi::MotorGroup *rightMotors;
+    double wheelDiameter;
+    double wheelTrack;
+    double gearRatio;
+    okapi::AbstractMotor::gearset gearSet;
+};
+
 struct PID {
     double kP;
     double kI;

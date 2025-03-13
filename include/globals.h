@@ -33,6 +33,7 @@ extern okapi::MotorGroup ladyBrownGroup;
 extern pros::adi::Pneumatics mogoClamp;
 extern pros::adi::Pneumatics rushMech;
 
+
 void colorSorting();
 
 void intakeUntilColor();

@@ -140,8 +140,10 @@ void opcontrol() {
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
 	int count = 0;
+	// chassis -> setMaxVelocity(10000);
 	chassis -> stop();
 	drivetrain -> stop();
+
 	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
 	master.rumble(".");
@@ -194,8 +196,11 @@ void opcontrol() {
 			rushMech.toggle();
 		}
 
-		if (master.get_digital_new_press(DIGITAL_X) && master.get_digital_new_press(DIGITAL_Y) && master.get_digital_new_press(DIGITAL_L2)) { 
-			autonomous();
+		if (master.get_digital_new_press(DIGITAL_X) && master.get_digital_new_press(DIGITAL_Y)) { 
+			newSkillsAuto();
+		}
+		if ( master.get_digital_new_press(DIGITAL_LEFT) && master.get_digital_new_press(DIGITAL_Y)){
+			bruhAuto();
 		}
 
 		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
@@ -223,18 +228,18 @@ void opcontrol() {
 
 		if(master.get_digital_new_press(DIGITAL_UP)){
 			pros::Task ladyUp(ladyBrownScore);
-		} else if(master.get_digital_new_press(DIGITAL_DOWN)){
+		} else if(master.get_digital_new_press(DIGITAL_L2) || master.get_digital_new_press(DIGITAL_DOWN)){
 			pros::Task ladyDown(ladyBrownDown);
 		} else if(master.get_digital(DIGITAL_RIGHT)){
 			ladyBrownPrime();
 		} else if(ladyBrownGroup.isStopped()){
 		}
 
-		if(!master.get_digital(DIGITAL_L2)){
+		// if(!master.get_digital(DIGITAL_L2)){
 			drivetrain->arcade(dir, turn); 
-		} else {
-			drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
-		}
+		// } else {
+		// 	drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
+		// }
 
 		pros::delay(20);                               // Run for 20 ms then update
 	}

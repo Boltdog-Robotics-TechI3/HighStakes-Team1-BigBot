@@ -25,6 +25,25 @@ std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast
 
 std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
 
+Drivetrain driveTrain = {
+    .leftMotors = &left,
+    .rightMotors = &right,
+    .wheelDiameter = 2.75,
+    .wheelTrack = 11.75,
+    .gearRatio = 36.0/48.0,
+    .gearSet = okapi::AbstractMotor::gearset::blue,
+};
+
+// PID constants for lateral motion
+PID lateralPID = {
+    .kP = 0.1,
+    .kI = 0.0,
+    .kD = 0.0,
+    .smallErrorRange = 1.0, // inches
+    .smallErrorTimeout = 1000.0, // milliseconds
+    .largeErrorRange = 100.0, // inches
+    .largeErrorTimeout = 5000.0, // milliseconds
+};
 // PID constants for turning
 PID turnPID = {
     .kP = 2.5,
@@ -44,6 +63,97 @@ void setDriveCurrentLimt(int limit){
 	topRight.setCurrentLimit(limit);
 	backLeft.setCurrentLimit(limit);
 	backRight.setCurrentLimit(limit);
+}
+
+void arcadeDrive(double forward, double turn) {
+    if (forward != 0 || turn != 0) {
+        left.moveVelocity(forward + turn);
+        right.moveVelocity(forward - turn);
+    } else {
+        left.moveVelocity(0);
+        right.moveVelocity(0);
+    }   
+}
+
+double getTargetIMEOffset(double distance) {
+    double coefficient = 1.0;
+    switch (left.getEncoderUnits()) {
+        case okapi::AbstractMotor::encoderUnits::degrees:
+            coefficient = 360;
+            break;
+        case okapi::AbstractMotor::encoderUnits::rotations:
+            break;
+        case okapi::AbstractMotor::encoderUnits::counts:
+            switch (driveTrain.gearSet) {
+                case okapi::AbstractMotor::gearset::green:
+                    coefficient = 900;
+                    break;
+                case okapi::AbstractMotor::gearset::red:
+                    coefficient = 1800;
+                    break;
+                case okapi::AbstractMotor::gearset::blue:
+                    coefficient = 300;
+                    break;
+                default:
+                    throw std::invalid_argument("Invalid gear set");
+            
+            }
+            break;
+        default:
+            throw std::invalid_argument("Invalid encoder units");
+    }
+    return distance * coefficient * driveTrain.gearRatio / (driveTrain.wheelDiameter * M_PI);
+}
+
+void driveDistance(double distance, double velocity) {
+    double target = getTargetIMEOffset(distance);
+    left.moveRelative(target, velocity);
+    right.moveRelative(target, velocity);
+}
+void driveDistancePID(double distance, double maxVelocity, double timeout, bool async) {
+    pros::Task drivePIDTask([=] {
+        double leftTarget = left.getPosition() + getTargetIMEOffset(distance);
+        double rightTarget = right.getPosition() + getTargetIMEOffset(distance);
+        double target = (leftTarget + rightTarget) / 2;
+
+        double position = (left.getPosition() + right.getPosition()) / 2;
+        double error = target - position;
+        double tolerance = 10;
+
+        double startTime = pros::millis();
+        double endTime = startTime + timeout;
+
+        double integral = 0;
+        double derivative = 0;
+        double lastError = 0;
+
+        //leftMotors.move_relative(getTargetIMEOffset(distance), maxVelocity);
+        //ightMotors.move_relative(getTargetIMEOffset(distance), maxVelocity);
+        while (std::abs(error) > target + tolerance && pros::millis() < endTime) {
+            double velocity = 0.0;//error * lateralPID.kP + integral * lateralPID.kI + derivative * lateralPID.kD;
+            if (velocity > maxVelocity) {
+                velocity = maxVelocity;
+            } else if (velocity < -maxVelocity) {
+                velocity = -maxVelocity;
+            }
+
+            left.moveVelocity(velocity);
+            right.moveVelocity(velocity);
+
+            position = (left.getPosition() + right.getPosition()) / 2;
+            error = target - position;
+            integral += error;
+            derivative = error - lastError;
+            lastError = error;
+
+            pros::delay(10);
+        }
+        left.moveVelocity(0);
+        right.moveVelocity(0);
+    });
+    if (!async) {
+        drivePIDTask.join();
+    }
 }
 
 /**
@@ -110,8 +220,8 @@ void turnAngle(double angle, double maxVelocity, int timeout) {
         }
 
         // Set the motor velocities
-		rightMotorGroup.moveVelocity(-velocity);
-		leftMotorGroup.moveVelocity(velocity);
+		right.moveVelocity(-velocity);
+		left.moveVelocity(velocity);
 		pros::delay(5);
 
         // Determine if within small error range
@@ -156,6 +266,7 @@ void turnAngle(double angle, double maxVelocity, int timeout) {
 
 void drivetrainInit(){
 	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+    gyro.set_data_rate(5);
 	gyro.reset();
 	while(gyro.is_calibrating());
 }

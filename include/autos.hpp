@@ -11,3 +11,5 @@ void safePath();
 void intakeUntilColor();
 
 void bruhAuto();
+
+void newSkillsAuto();
