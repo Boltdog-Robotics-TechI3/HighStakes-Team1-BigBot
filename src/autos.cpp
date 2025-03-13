@@ -254,7 +254,9 @@ void newSkillsAuto(){
 	chassis->moveDistanceAsync(36_in); //drive into first ring (async bc move was not finishing sometimes)
 	pros::delay(1000); //stop async move
 	turnToHeading(315); //face center ring
-	chassis -> moveDistance(17_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY * 0.5);
+	chassis -> moveDistance(19_in);
+	chassis -> setMaxVelocity(MAX_VELOCITY);
 	chassis -> moveDistance(-18_in); //grab ring
 
 //grab mogo
@@ -269,7 +271,7 @@ void newSkillsAuto(){
 
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
 	turnToHeading(180); //face 3rd ring
-	chassis->moveDistance(24_in);
+	chassis->moveDistance(22_in);
 	
 	turnToHeading(145); //face the corner and 4th ring
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.35);
@@ -280,17 +282,57 @@ void newSkillsAuto(){
 
 	chassis -> setMaxVelocity(MAX_VELOCITY);
 	turnToHeading(315); //face mogo to corner
-	chassis->setMaxVelocity(MAX_VELOCITY * 0.75);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
 	chassis->moveDistanceAsync(-22_in); //back into corner
 	pros::delay(1400);
 	mogoClamp.retract(); //drop goal
 	pros::delay(100);
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
 
 //pick up 2 more rings on the other side of the field
-	chassis -> moveDistance(18_in);
+	chassis -> moveDistance(20_in); //back away from corner
+	turnToHeading(0); //turn back towards more rings
+	pros::Task getColor(intakeUntilColor); 
+	chassis->moveDistance(62_in); //Collect 2 rings ahead
+	turnToHeading(90);
+
+//Grab mogo 2
+	mogoClamp.retract();
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
+	chassis->moveDistance(-20_in);
+	mogoClamp.extend();
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.75);
+	// lift.move(127);
+	pros::Task colorsort(colorSortingAuto);
+
 	turnToHeading(0);
-	//intakeUntilColor();
-	//intakeUntilColor();
+	chassis->moveDistance(24_in);//Take in ring
+	turnToHeading(90);
+	chassis->moveDistance(22_in);//Take in another ring
+	turnToHeading(225);
+
+	colorsort.suspend();
+
+//Drop mogo2 in the corner slowly (rings are still there)
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.2);
+	chassis->moveDistanceAsync(-21_in);
+	pros::delay(1500);
+	chassis->stop();
+	mogoClamp.retract();
+	pros::delay(200);
+	chassis->moveDistance(10_in);
+
+//Grab third mogo
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
+	turnToHeading(90);
+	chassis->moveDistance(-36_in);
+	mogoClamp.extend();
+	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
+	chassis->moveDistance(12_in);
+	turnToHeading(140);
+	lift.move(127);
+	intake.move(127);
+	chassis->moveDistance(56_in);
 
 	pros::delay(10000); //delay so the auto doesnt end too early
 }
