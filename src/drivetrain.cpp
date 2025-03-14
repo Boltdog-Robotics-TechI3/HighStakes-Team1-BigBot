@@ -46,14 +46,14 @@ PID lateralPID = {
 };
 // PID constants for turning
 PID turnPID = {
-    .kP = 3,
+    .kP = 2.75,
     .kI = 0.0,
     .kD = 0,
     .smallErrorRange = 0.4, // degrees
     .smallErrorTimeout = 100.0, // milliseconds
     .largeErrorRange = 1.0, // degrees
     .largeErrorTimeout = 400.0, // milliseconds
-    .minVelocity = 3.0
+    .minVelocity = 2.5
 };
 
 void setDriveCurrentLimt(int limit){
@@ -127,8 +127,6 @@ void driveDistancePID(double distance, double maxVelocity, double timeout, bool 
         double derivative = 0;
         double lastError = 0;
 
-        //leftMotors.move_relative(getTargetIMEOffset(distance), maxVelocity);
-        //ightMotors.move_relative(getTargetIMEOffset(distance), maxVelocity);
         while (std::abs(error) > target + tolerance && pros::millis() < endTime) {
             double velocity = 0.0;//error * lateralPID.kP + integral * lateralPID.kI + derivative * lateralPID.kD;
             if (velocity > maxVelocity) {
@@ -181,7 +179,7 @@ void turnToHeading(double heading, double maxVelocity, int timeout, enum TurnBeh
         }
     } else if (behavior == TurnBehavior::RIGHT) {
         if (error < 0) {
-            error = -360 + error;
+            error = 360 + error;
         }
     }
 
@@ -265,8 +263,8 @@ void turnAngle(double angle, double maxVelocity, int timeout) {
 }
 
 void drivetrainInit(){
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
+	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
     gyro.set_data_rate(5);
-	gyro.reset();
+	gyro.reset(true);
 	while(gyro.is_calibrating());
 }

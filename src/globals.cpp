@@ -113,7 +113,7 @@ void colorSortingAuto(){
 void ladyBrownScore(){
     if(!ladyBrownUp){
         ladyBrownGroup.moveVoltage(-10000);
-        pros::delay(600);
+        pros::delay(650);
         ladyBrownGroup.moveVoltage(0);
     } else {
         ladyBrownGroup.moveVoltage(-4000);

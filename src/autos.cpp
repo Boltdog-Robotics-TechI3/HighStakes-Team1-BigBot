@@ -1,3 +1,5 @@
+#include "drivetrain.hpp"
+#include "globals.h"
 #include "main.h";
 
 
@@ -17,8 +19,6 @@
 //     }
 // }
 
-//😱
-// TODO: Set headings at the beginning of autos
 void skillsAuto() {
 	master.set_text(0, 0, "Alliance: " + std::to_string(blueAlliance));
 	gyro.set_heading(0);
@@ -255,14 +255,14 @@ void newSkillsAuto(){
 	chassis->moveDistanceAsync(36_in); //drive into first ring (async bc move was not finishing sometimes)
 	pros::delay(1000); //stop async move
 	chassis -> stop();
-	turnToHeading(315); //face center ring
+	turnToHeading(315, 0.9); //face center ring
 	chassis -> setMaxVelocity(MAX_VELOCITY * 0.5);
 	chassis -> moveDistance(19_in);
 	chassis -> setMaxVelocity(MAX_VELOCITY);
 	chassis -> moveDistance(-18_in); //grab ring
 
 //grab mogo
-	turnToHeading(270); //face mogo with back
+	turnToHeading(270, 0.9); //face mogo with back
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
 	chassis -> moveDistance(-21_in);
 	mogoClamp.extend(); //grab mogo
@@ -272,10 +272,10 @@ void newSkillsAuto(){
 	lift.move(127); //scoring 2 staged rings
 
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.8);
-	turnToHeading(180); //face 3rd ring
+	turnToHeading(180, 0.9); //face 3rd ring
 	chassis->moveDistance(22_in);
 	
-	turnToHeading(145); //face the corner and 4th ring
+	turnToHeading(145, 0.9); //face the corner and 4th ring
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.35);
 	chassis->moveDistanceAsync(24_in); //move into corner async so there is a timeout
 	pros::delay(1500);
@@ -292,7 +292,7 @@ void newSkillsAuto(){
 
 //pick up 2 more rings on the other side of the field
 	chassis -> moveDistance(20_in); //back away from corner
-	turnToHeading(0); //turn back towards more rings
+	turnToHeading(0, 0.9); //turn back towards more rings
 	pros::Task getColor(intakeUntilColor);
 	chassis->setMaxVelocity(MAX_VELOCITY);
 	chassis->moveDistanceAsync(62_in); //Collect 2 rings ahead
@@ -308,11 +308,11 @@ void newSkillsAuto(){
 	// lift.move(127);
 	pros::Task colorsort(colorSortingAuto);
 
-	turnToHeading(0);
+	turnToHeading(0, 0.9);
 	chassis->moveDistance(24_in);//Take in ring
-	turnToHeading(90);
+	turnToHeading(90, 0.9);
 	chassis->moveDistance(16_in);//Take in another ring
-	turnToHeading(225);
+	turnToHeading(225, 0.9);
 	mogoClamp.retract();
 
 	colorsort.suspend();
@@ -324,20 +324,35 @@ void newSkillsAuto(){
 	chassis->moveDistanceAsync(-21_in);
 	pros::delay(1500);
 	chassis->stop();
-	chassis->moveDistance(10_in);
+	chassis->moveDistance(16_in);
 
 //Grab third mogo
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.6);
-	turnToHeading(90);
-	chassis->moveDistance(-36_in);
+	turnToHeading(90, 0.9);
+	chassis->moveDistance(-48_in);
 	mogoClamp.extend();
 	pros::delay(100);
 	chassis->setMaxVelocity(MAX_VELOCITY);
-	chassis->moveDistance(12_in);
-	turnToHeading(140);
-	lift.move(127);
+
+	// Score ring by blue stake on mogo
+	turnToHeading(45, 0.9);
 	intake.move(127);
-	chassis->moveDistance(60_in);
+	lift.move(127);
+	chassis->moveDistanceAsync(1.2_ft);
+	pros::delay(1000);
+	turnToHeading(135);
+	ladyBrownScore();
+
+	chassis->moveDistance(32_in);
+	intake.move(0);
+	lift.move(0);
+	mogoClamp.retract();
+
+	turnToHeading(45, 0.9);
+
+	chassis->moveDistanceAsync(-2.5_ft);
+	pros::delay(2000);
+	ladyBrownPrime();
 
 	pros::delay(10000); //delay so the auto doesnt end too early
 }
