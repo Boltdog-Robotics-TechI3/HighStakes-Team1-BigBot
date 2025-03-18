@@ -109,6 +109,19 @@ void colorSortingAuto(){
         pros::delay(20);
     }
 }
+void ladyBrownScoreTeleop(){
+    
+    if(!ladyBrownUp){
+        ladyBrownGroup.moveVoltage(-10000);
+        pros::delay(650);
+        ladyBrownGroup.moveVoltage(0);
+    } else {
+        ladyBrownGroup.moveVoltage(-4000);
+        pros::delay(250);
+        ladyBrownGroup.moveVoltage(0);
+    }
+    ladyBrownUp = true;
+}
 
 void ladyBrownScore(){
     if(!ladyBrownUp){

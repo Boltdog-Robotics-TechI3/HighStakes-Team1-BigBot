@@ -40,6 +40,7 @@ void intakeUntilColor();
 
 void colorSortingAuto();
 
+void ladyBrownScoreTeleop();
 void ladyBrownScore();
 
 void ladyBrownDown();

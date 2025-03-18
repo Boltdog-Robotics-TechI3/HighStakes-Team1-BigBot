@@ -266,6 +266,7 @@ void newSkillsAuto(){
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.4);
 	chassis -> moveDistance(-21_in);
 	mogoClamp.extend(); //grab mogo
+	pros::Task lady(ladyBrownScore);
 
 // score 2 staged ring and grab 2 more
 	intake.move(127);
@@ -294,7 +295,7 @@ void newSkillsAuto(){
 	chassis -> moveDistance(20_in); //back away from corner
 	turnToHeading(0, 0.9); //turn back towards more rings
 	pros::Task getColor(intakeUntilColor);
-	chassis->setMaxVelocity(MAX_VELOCITY);
+	chassis->setMaxVelocity(MAX_VELOCITY * .9);
 	chassis->moveDistanceAsync(62_in); //Collect 2 rings ahead
 	pros::delay(2000);
 	turnToHeading(90);
@@ -315,44 +316,46 @@ void newSkillsAuto(){
 	turnToHeading(225, 0.9);
 	mogoClamp.retract();
 
-	colorsort.suspend();
-	intake.move(0);
-	lift.move(0);
+	
 
 //Drop mogo2 in the corner slowly (rings are still there)
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.45);
 	chassis->moveDistanceAsync(-21_in);
-	pros::delay(1500);
+	pros::delay(1000);
+	colorsort.suspend();
+	intake.move(0);
+	lift.move(0);
 	chassis->stop();
-	chassis->moveDistance(16_in);
+	chassis->moveDistance(14_in);
 
 //Grab third mogo
 	chassis->setMaxVelocity(MAX_VELOCITY * 0.6);
 	turnToHeading(90, 0.9);
-	chassis->moveDistance(-48_in);
+	chassis->moveDistance(-32_in);
 	mogoClamp.extend();
 	pros::delay(100);
 	chassis->setMaxVelocity(MAX_VELOCITY);
 
 	// Score ring by blue stake on mogo
-	turnToHeading(45, 0.9);
-	intake.move(127);
-	lift.move(127);
-	chassis->moveDistanceAsync(1.2_ft);
-	pros::delay(1000);
-	turnToHeading(135);
-	ladyBrownScore();
+	// turnToHeading(45, 0.9);
+	// intake.move(127);
+	pros::Task colorsort3(colorSortingAuto);
+	// lift.move(127);
+	chassis->moveDistance(12_in);
+	// pros::delay(1000);
+	turnToHeading(140);
+	// ladyBrownScore();
 
-	chassis->moveDistance(32_in);
-	intake.move(0);
-	lift.move(0);
-	mogoClamp.retract();
+	chassis->moveDistance(60_in);
+	// intake.move(0);
+	// lift.move(0);
+	// mogoClamp.retract();
 
-	turnToHeading(45, 0.9);
+	// turnToHeading(45, 0.9);
 
-	chassis->moveDistanceAsync(-2.5_ft);
-	pros::delay(2000);
-	ladyBrownPrime();
-
+	// chassis->moveDistanceAsync(-2.5_ft);
+	// pros::delay(2000);
+	// ladyBrownPrime();
+ 
 	pros::delay(10000); //delay so the auto doesnt end too early
 }

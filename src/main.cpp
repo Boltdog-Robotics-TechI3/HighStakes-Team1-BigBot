@@ -91,30 +91,30 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-	newSkillsAuto();
 
-	// switch (autoSelection) {
-	// 	case 0:
-	// 		goalRushAutoRed();
-	// 		break;
-	// 	case 1:
-	// 		//Match Plus Side Drop Goal Auto
-	// 		goalRushAutoBlue();
-	// 		break;
-	// 	case 2:
-	// 		//Match Climb Goal Keep Goal Autowatch climb keep
-	// 		break;
-	// 	case 3:
-	// 		//Match Climb Goal Drop Goal Selected
-	// 		break;
-	// 	case 4:
-	// 		//Skills
-	// 		skillsAuto();
-	// 		break;
-	// 	case 5:
-	// 		//Do nothing
-	// 		break;
-	// }
+	switch (autoSelection) {
+		case 0:
+			newSkillsAuto();
+			break;
+		case 1:
+			//Match Plus Side Drop Goal Auto
+			goalRushAutoBlue();
+			break;
+		case 2:
+			//Match Climb Goal Keep Goal Autowatch climb keep
+			goalRushAutoRed();
+			break;
+		case 3:
+			//Match Climb Goal Drop Goal Selected
+			break;
+		case 4:
+			//Skills
+			skillsAuto();
+			break;
+		case 5:
+			//Do nothing
+			break;
+	}
 }
 
 /**
@@ -229,6 +229,8 @@ void opcontrol() {
 		// }
 
 		if(master.get_digital_new_press(DIGITAL_UP)){
+			lift.move(-127);
+    pros::delay(150);
 			pros::Task ladyUp(ladyBrownScore);
 		} else if(master.get_digital_new_press(DIGITAL_L2) || master.get_digital_new_press(DIGITAL_DOWN)){
 			pros::Task ladyDown(ladyBrownDown);
