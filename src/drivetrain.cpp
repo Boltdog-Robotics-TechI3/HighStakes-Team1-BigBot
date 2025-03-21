@@ -105,12 +105,13 @@ double getTargetIMEOffset(double distance) {
     return distance * coefficient * driveTrain.gearRatio / (driveTrain.wheelDiameter * M_PI);
 }
 
-void driveDistance(double distance, double velocity) {
+void driveDistance(double distance, double voltage) {
     double target = getTargetIMEOffset(distance);
-    left.moveRelative(target, velocity);
-    right.moveRelative(target, velocity);
+    left.moveRelative(target, voltage);
+    right.moveRelative(target, voltage);
 }
-void driveDistancePID(double distance, double maxVelocity, double timeout, bool async) {
+
+void driveDistancePID(double distance, double maxVoltage, double timeout, bool async) {
     pros::Task drivePIDTask([=] {
         double leftTarget = left.getPosition() + getTargetIMEOffset(distance);
         double rightTarget = right.getPosition() + getTargetIMEOffset(distance);
@@ -123,20 +124,21 @@ void driveDistancePID(double distance, double maxVelocity, double timeout, bool 
         double startTime = pros::millis();
         double endTime = startTime + timeout;
 
+
         double integral = 0;
         double derivative = 0;
         double lastError = 0;
 
         while (std::abs(error) > target + tolerance && pros::millis() < endTime) {
-            double velocity = 0.0;//error * lateralPID.kP + integral * lateralPID.kI + derivative * lateralPID.kD;
-            if (velocity > maxVelocity) {
-                velocity = maxVelocity;
-            } else if (velocity < -maxVelocity) {
-                velocity = -maxVelocity;
+            double voltage = error * lateralPID.kP + integral * lateralPID.kI + derivative * lateralPID.kD;
+            if (voltage > maxVoltage) {
+                voltage = maxVoltage;
+            } else if (voltage < -maxVoltage) {
+                voltage = -maxVoltage;
             }
 
-            left.moveVelocity(velocity);
-            right.moveVelocity(velocity);
+            left.moveVoltage(voltage);
+            right.moveVoltage(voltage);
 
             position = (left.getPosition() + right.getPosition()) / 2;
             error = target - position;
@@ -146,8 +148,8 @@ void driveDistancePID(double distance, double maxVelocity, double timeout, bool 
 
             pros::delay(10);
         }
-        left.moveVelocity(0);
-        right.moveVelocity(0);
+        left.moveVoltage(0);
+        right.moveVoltage(0);
     });
     if (!async) {
         drivePIDTask.join();
