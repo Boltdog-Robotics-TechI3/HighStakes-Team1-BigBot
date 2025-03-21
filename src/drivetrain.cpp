@@ -1,15 +1,15 @@
 #include "main.h"
 
-okapi::Motor frontRight(1);
-okapi::Motor backRight(2);
-okapi::Motor topRight(-3);
+pros::Motor frontRight(1);
+pros::Motor backRight(2);
+pros::Motor topRight(-3);
 
-okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(9);
-okapi::Motor topLeft(-10);
+pros::Motor frontLeft(-8);
+pros::Motor backLeft(9);
+pros::Motor topLeft(-10);
 
-okapi::MotorGroup right({frontRight, topRight, backRight});
-okapi::MotorGroup left({frontLeft, topLeft, backLeft});
+pros::MotorGroup right({1, -3, 2});
+pros::MotorGroup left({-8, -10, 9});
 
 pros::IMU gyro(12);
 

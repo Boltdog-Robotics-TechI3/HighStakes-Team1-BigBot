@@ -1,13 +1,13 @@
 #pragma once
 #include "main.h"
 
-extern okapi::Motor frontRight;
-extern okapi::Motor backRight;
-extern okapi::Motor topRight;
+extern pros::Motor frontRight;
+extern pros::Motor backRight;
+extern pros::Motor topRight;
  
-extern okapi::Motor frontLeft;
-extern okapi::Motor backLeft;
-extern okapi::Motor topLeft;
+extern pros::Motor frontLeft;
+extern pros::Motor backLeft;
+extern pros::Motor topLeft;
 
 extern pros::IMU gyro;
 
@@ -16,8 +16,8 @@ extern std::shared_ptr<okapi::ChassisControllerPID> chassis;
 extern std::shared_ptr<ChassisModel> drivetrain;
 
 struct Drivetrain {
-    okapi::MotorGroup *leftMotors;
-    okapi::MotorGroup *rightMotors;
+    pros::MotorGroup *leftMotors;
+    pros::MotorGroup *rightMotors;
     double wheelDiameter;
     double wheelTrack;
     double gearRatio;
