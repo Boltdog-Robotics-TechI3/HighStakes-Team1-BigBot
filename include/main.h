@@ -78,6 +78,9 @@ void opcontrol(void);
 //#include <iostream>
 #include "globals.h"
 #include "screen.h"
+#include "drivetrain.hpp"
+#include "autos.hpp"
+
 #endif
 
 #endif  // _PROS_MAIN_H_

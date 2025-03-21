@@ -1,73 +1,22 @@
 #include "main.h"
 
-const int MAX_VELOCITY = 600;
 
-bool intakeFront = true;
 
-int teleOPCurrentLimit = 2200;
-
-pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor lift(5);
-
-okapi::Motor frontRight(1);
-okapi::Motor backRight(2);
-okapi::Motor topRight(-3);
-
-okapi::Motor frontLeft(-8);
-okapi::Motor backLeft(-9);
-okapi::Motor topLeft(10);
-
-okapi::MotorGroup right({frontRight, topRight, backRight});
-okapi::MotorGroup left({frontLeft, topLeft, backLeft});
-
-okapi::Motor ladyBrownLeft(-7);
-okapi::Motor ladyBrownRight(4);
-
-okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
-
-auto chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
-	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (72.0/60.0)}, {{4_in, 15.75_in}, imev5BlueTPR})
-	.withGains(
-		{0.00285, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0})
-	.build());
-
-std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
-
-pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('A', false);
 
 //Init functions
 
-void drivetrainInit(){
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::brake);
-}
-
 void ladyBrownInit(){
-	ladyBrownLeft.setVoltageLimit(7200);
-	ladyBrownRight.setVoltageLimit(7200);
-
 	ladyBrownLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 	ladyBrownRight.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
 
-	ladyBrownLeft.setReversed(false);
-	ladyBrownRight.setReversed(true);
+	ladyBrownLeft.setReversed(true);
+	ladyBrownRight.setReversed(false);
 
 	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
-	ladyBrownGroup.setVoltageLimit(7200);
 
 	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
 }
 
-void setDriveCurrentLimt(int limit){
-	frontLeft.setCurrentLimit(limit);
-	frontRight.setCurrentLimit(limit);
-	topLeft.setCurrentLimit(limit);
-	topRight.setCurrentLimit(limit);
-	backLeft.setCurrentLimit(limit);
-	backRight.setCurrentLimit(limit);
-}
 
 
 /**
@@ -80,180 +29,7 @@ void setDriveCurrentLimt(int limit){
  * - 4 ring on another mobile goal and place it in the corner
  * - Buddy climb
  */
-void cornerMoveFunct(void* param){
-	chassis -> moveDistanceAsync(-20_in);
-}
 
-
-void skills_autonomous() {
-
-
-	//Score 1 ring on alliance stake
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.3);
-	lift.move(127); //start intake 
-	pros::delay(100);
-	chassis -> moveDistance(12_in); //grab 1st ring
-	pros::delay(300);
-	lift.move(0);
-	chassis -> moveDistance(-11_in); //go back to alliance stake 
-	lift.move(127); //start intake 
-	pros::delay(1250); //score ring
-
-	//Put 3 rings on mobile goal and place in corner
-	chassis->setGains(
-		{0.003, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0}
-	);	
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(16_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(45_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(34_in); //go to 2nd next ring
-	pros::delay(100);
-	lift.move(0); //stop intake because we dont have a goal yet
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.25); //slow down more so we dont hit the goal away
-	chassis -> moveDistance(-20_in);
-	mogoClamp.extend(); // grab goal
-	lift.move(127);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-90_deg); //turn to next ring
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg); //turn to corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(13.5_in); //go into corner
-	pros::delay(200); //grab ring
-	chassis -> moveDistance(-13.5_in); //back up and spin around
-	lift.move(0); 
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(180_deg); //turn around so back is facing corner
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	// pros::Task* cornerMoveTask = new pros::Task(cornerMoveFunct);
-	chassis -> moveDistanceAsync(-20_in);
-	pros::delay(2300);
-	mogoClamp.retract(); //drop goal in corner
-
-	pros::delay(200);
-
-	chassis -> moveDistance(24_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-135_deg);
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4);
-	chassis -> moveDistance(-48_in);
-	chassis -> setMaxVelocity(MAX_VELOCITY); 
-	chassis -> turnAngle(-45_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * .2);
-	chassis -> moveDistance(-24_in);
-
-	mogoClamp.extend();
-
-	chassis -> setMaxVelocity(MAX_VELOCITY);
-
-	chassis -> turnAngle(90_deg);
-
-	chassis -> setMaxVelocity(MAX_VELOCITY * 0.4); 
-	chassis -> moveDistance(-48_in);
-
-	/**/
-
-}
-
-void dropGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-135_deg);
-	chassis -> moveDistance(-12_in);
-	mogoClamp.retract();
-	lift.move(0);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	chassis -> moveDistance(54_in);
-}
-
-void keepGoalAuto(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-145_deg);
-	ladyBrownGroup.moveAbsolute(245, 30);
-	lift.move(0);
-	chassis -> moveDistance(54_in);
-}
-
-
-void keepGoalAutoElims(){
-	ladyBrownGroup.moveAbsolute(200, 30);
-	chassis -> setMaxVelocity(MAX_VELOCITY * .3);
-	chassis -> setGains(
-		{0.002, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(-4_in);
-	mogoClamp.extend();
-	chassis -> setMaxVelocity(MAX_VELOCITY * .5);
-	chassis -> setGains(
-		{0.001, 0.0, 0.0}, 
-		{0.00095, 0, 0}, 
-		{0, 0, 0});
-	chassis -> moveDistance(12_in);
-	chassis -> turnAngle(-20_deg);
-	lift.move(127);
-	pros::delay(500);
-	lift.move(-127);
-	pros::delay(500);
-	lift.move(127);
-	chassis -> moveDistance(30_in);
-	chassis -> turnAngle(-145_deg);
-	chassis -> moveDistance(-36_in);
-	return;
-}
 /**
  * A callback function for LLEMU's center button.
  *
@@ -273,6 +49,9 @@ void initialize() {
 
 	drivetrainInit();
 	ladyBrownInit();
+	lift.set_gearing(pros::MotorGear::green);
+	lift.set_encoder_units(pros::MotorEncoderUnits::degrees);
+	lift.set_brake_mode(pros::MotorBrake::brake);
 }
 
 /**
@@ -296,7 +75,9 @@ void disabled() {
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -310,25 +91,25 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	setDriveCurrentLimt(2200);
+
 	switch (autoSelection) {
 		case 0:
-			keepGoalAuto();
+			newSkillsAuto();
 			break;
 		case 1:
 			//Match Plus Side Drop Goal Auto
-			keepGoalAutoElims();
+			goalRushAutoBlue();
 			break;
 		case 2:
 			//Match Climb Goal Keep Goal Autowatch climb keep
-			dropGoalAuto();
+			goalRushAutoRed();
 			break;
 		case 3:
 			//Match Climb Goal Drop Goal Selected
 			break;
 		case 4:
 			//Skills
-			skills_autonomous();
+			skillsAuto();
 			break;
 		case 5:
 			//Do nothing
@@ -360,11 +141,12 @@ void opcontrol() {
 	//A button controls intake and lift
 	//Left joystick controls forward/backwards movement
 	//Right joystick controls turning
-
-	setDriveCurrentLimt(teleOPCurrentLimit);
+	int count = 0;
+	// chassis -> setMaxVelocity(10000);
 	chassis -> stop();
 	drivetrain -> stop();
 
+	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
 
 	master.rumble(".");
 	while (true) {
@@ -382,63 +164,86 @@ void opcontrol() {
 		// 	turn = pow(rightX, 3);  // Gets the turn left/right from right joystick
 		// }
 
+
+		
 		//Move the ring conveyor up or down depending on what right shoulder button is pressed.
-		if (master.get_digital(DIGITAL_R1)) { 
-			lift.move(127);
-		} else if (master.get_digital(DIGITAL_R2)) {
-			lift.move(-127);
+		if(!isSorting){
+			if (master.get_digital(DIGITAL_R1)) { 
+				colorSorting();
+				intake.move(127);
+			} else if (master.get_digital(DIGITAL_R2)) {
+				lift.move(-127);
+				intake.move(-127);
+			} else if (master.get_digital(DIGITAL_L1)){
+				intake.move(127);
+			} else {
+				lift.move(0);
+				intake.move(0);
+			}
 		} else {
-			lift.move(0);
+			if(lift.get_actual_velocity() == 0){
+				if(count > 5){
+					isSorting = false;
+					count = 0;
+				}
+				count++;
+			}
 		}
 		
 		//Toggle the goal clamp on the back (pneumatic clamp)
 		if (master.get_digital_new_press(DIGITAL_B)) { 
 			mogoClamp.toggle();
 		}
-
-		// if (master.get_digital(DIGITAL_RIGHT)) {
-		// 	skills_autonomous();
-		// }
-
-		if (master.get_digital_new_press(DIGITAL_L2)) { 
-			intakeFront = !intakeFront;
+		if (master.get_digital_new_press(DIGITAL_A)) { 
+			rushMech.toggle();
 		}
 
-
-		// if (master.get_digital(DIGITAL_UP)) { 
-		// 	ladyBrownGroup.moveVoltage(12000);
-		// } else if (master.get_digital(DIGITAL_DOWN)) {
-		// 	ladyBrownGroup.moveVoltage(-12000);
-		// } else {
-		// 	ladyBrownGroup.moveVoltage(0);
-		// }
-
-		if (master.get_digital_new_press(DIGITAL_DOWN)) {
-			ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
-		} else if (master.get_digital_new_press(DIGITAL_RIGHT)){
-			ladyBrownGroup.moveAbsolute(55, 60); //for grabbing rings
-		} else if (master.get_digital_new_press(DIGITAL_UP)){
-			ladyBrownGroup.moveAbsolute(255, 90); //score
+		if (master.get_digital_new_press(DIGITAL_X) && master.get_digital_new_press(DIGITAL_Y)) { 
+			newSkillsAuto();
 		}
-		// } else if(ladyBrownGroup.isStopped()){
-		// 	ladyBrownGroup.moveAbsolute(ladyBrownGroup.getPosition(), 30); //hold postion other wise
+		// if ( master.get_digital_new_press(DIGITAL_LEFT) && master.get_digital_new_press(DIGITAL_Y)){
+		// 	bruhAuto();
 		// }
-		// if(count == 10){
-		// 	avgCurr = std::fmax(avgCurr, ((frontLeft.getCurrentDraw() + frontRight.getCurrentDraw() + 
-		// 			backLeft.getCurrentDraw() + backRight.getCurrentDraw() + 
-		// 			topLeft.getCurrentDraw() + topRight.getCurrentDraw()) / 6));
-		// 	master.set_text(1, 1, std::to_string(avgCurr));
-			
-		// 	count = 0;
+
+		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
+		// 	ladyBrownGroup.moveAbsolute(0, 30); //home ladybrown arm
+		// } else if (master.get_digital_new_press(DIGITAL_RIGHT)){
+		// 	ladyBrownGroup.moveAbsolute(55, 60); //for grabbing rings
+		// } else if (master.get_digital_new_press(DIGITAL_UP)){
+		// 	ladyBrownGroup.moveAbsolute(255, 90); //score
 		// }
-		// maxCurr = std::fmax(maxCurr, frontLeft.getCurrentDraw());
 
 		// count++;
-		if(master.get_digital(DIGITAL_L1)){
-			drivetrain->arcade(dir, turn); 
-		} else {
-			drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
+		// if (master.get_digital(DIGITAL_LEFT)) {
+		// 	goalRushAutoBlue();
+		// 	// turnAngle(90, 10);
+		// }
+		// // if (master.get_digital(DIGITAL_UP)){
+		// // 	safePath();
+		// // }
+		// if (master.get_digital(DIGITAL_RIGHT)) {
+		// 	skillsAuto();	
+		// }
+		// if (master.get_digital_new_press(DIGITAL_DOWN)) {
+		// 	bruhAuto();	
+		// }
+
+		if(master.get_digital_new_press(DIGITAL_UP)){
+			lift.move(-127);
+    pros::delay(150);
+			pros::Task ladyUp(ladyBrownScore);
+		} else if(master.get_digital_new_press(DIGITAL_L2) || master.get_digital_new_press(DIGITAL_DOWN)){
+			pros::Task ladyDown(ladyBrownDown);
+		} else if(master.get_digital(DIGITAL_RIGHT)){
+			ladyBrownPrime();
+		} else if(ladyBrownGroup.isStopped()){
 		}
+
+		// if(!master.get_digital(DIGITAL_L2)){
+			drivetrain->arcade(dir, turn); 
+		// } else {
+		// 	drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
+		// }
 
 		pros::delay(20);                               // Run for 20 ms then update
 	}
