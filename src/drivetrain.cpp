@@ -13,26 +13,7 @@ pros::MotorGroup left({-8, -10, 9});
 
 pros::IMU gyro(12);
 
-std::shared_ptr<okapi::ChassisControllerPID> chassis = std::dynamic_pointer_cast<ChassisControllerPID>(ChassisControllerBuilder()
-	.withMotors(left, right)
-	.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
-	.withGains(
-		{0.0017, 0.0, 0.0000005}, 
-		{2.80, 0.0000, 1}, 
-		{0, 0, 0})
-	.withClosedLoopControllerTimeUtil()
-	.build());
-
-std::shared_ptr<ChassisModel> drivetrain = chassis->getModel();
-
-Drivetrain driveTrain = {
-    .leftMotors = &left,
-    .rightMotors = &right,
-    .wheelDiameter = 2.75,
-    .wheelTrack = 11.75,
-    .gearRatio = 36.0/48.0,
-    .gearSet = okapi::AbstractMotor::gearset::blue,
-};
+//.withDimensions({AbstractMotor::gearset::blue, (48.0/36.0)}, {{2.75_in, 11.75_in}, imev5BlueTPR})
 
 // PID constants for lateral motion
 PID lateralPID = {
@@ -57,41 +38,41 @@ PID turnPID = {
 };
 
 void setDriveCurrentLimt(int limit){
-	frontLeft.setCurrentLimit(limit);
-	frontRight.setCurrentLimit(limit);
-	topLeft.setCurrentLimit(limit);
-	topRight.setCurrentLimit(limit);
-	backLeft.setCurrentLimit(limit);
-	backRight.setCurrentLimit(limit);
+	frontLeft.set_current_limit(limit);
+	frontRight.set_current_limit(limit);
+	topLeft.set_current_limit(limit);
+	topRight.set_current_limit(limit);
+	backLeft.set_current_limit(limit);
+	backRight.set_current_limit(limit);
 }
 
 void arcadeDrive(double forward, double turn) {
     if (forward != 0 || turn != 0) {
-        left.moveVelocity(forward + turn);
-        right.moveVelocity(forward - turn);
+        left.move_voltage(forward + turn);
+        right.move_voltage(forward - turn);
     } else {
-        left.moveVelocity(0);
-        right.moveVelocity(0);
+        left.move_voltage(0);
+        right.move_voltage(0);
     }   
 }
 
 double getTargetIMEOffset(double distance) {
     double coefficient = 1.0;
-    switch (left.getEncoderUnits()) {
-        case okapi::AbstractMotor::encoderUnits::degrees:
+    switch (left.get_encoder_units()) {
+        case pros::AbstractMotor::encoder_units::degrees:
             coefficient = 360;
             break;
-        case okapi::AbstractMotor::encoderUnits::rotations:
+        case pros::AbstractMotor::encoder_units::rotations:
             break;
-        case okapi::AbstractMotor::encoderUnits::counts:
+        case pros::AbstractMotor::encoder_units::counts:
             switch (driveTrain.gearSet) {
-                case okapi::AbstractMotor::gearset::green:
+                case pros::AbstractMotor::gearset::green:
                     coefficient = 900;
                     break;
-                case okapi::AbstractMotor::gearset::red:
+                case pros::AbstractMotor::gearset::red:
                     coefficient = 1800;
                     break;
-                case okapi::AbstractMotor::gearset::blue:
+                case pros::AbstractMotor::gearset::blue:
                     coefficient = 300;
                     break;
                 default:

@@ -11,18 +11,9 @@ extern pros::Motor topLeft;
 
 extern pros::IMU gyro;
 
-extern std::shared_ptr<okapi::ChassisControllerPID> chassis;
 
 extern std::shared_ptr<ChassisModel> drivetrain;
 
-struct Drivetrain {
-    pros::MotorGroup *leftMotors;
-    pros::MotorGroup *rightMotors;
-    double wheelDiameter;
-    double wheelTrack;
-    double gearRatio;
-    okapi::AbstractMotor::gearset gearSet;
-};
 
 struct PID {
     double kP;
