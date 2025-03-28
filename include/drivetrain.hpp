@@ -12,8 +12,6 @@ extern pros::Motor topLeft;
 extern pros::IMU gyro;
 
 
-extern std::shared_ptr<ChassisModel> drivetrain;
-
 
 struct PID {
     double kP;

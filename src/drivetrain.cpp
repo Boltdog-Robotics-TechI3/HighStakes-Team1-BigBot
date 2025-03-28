@@ -1,5 +1,8 @@
 #include "main.h"
 
+double gearRatio = 3/4; //450 rpm
+double wheelDiameter = 2.75; //in
+
 pros::Motor frontRight(1);
 pros::Motor backRight(2);
 pros::Motor topRight(-3);
@@ -59,20 +62,20 @@ void arcadeDrive(double forward, double turn) {
 double getTargetIMEOffset(double distance) {
     double coefficient = 1.0;
     switch (left.get_encoder_units()) {
-        case pros::AbstractMotor::encoder_units::degrees:
+        case pros::MotorUnits::degrees:
             coefficient = 360;
             break;
-        case pros::AbstractMotor::encoder_units::rotations:
+        case pros::MotorUnits::rotations:
             break;
-        case pros::AbstractMotor::encoder_units::counts:
-            switch (driveTrain.gearSet) {
-                case pros::AbstractMotor::gearset::green:
+            case pros::MotorUnits::counts:
+            switch (left.get_gearing()) {
+                case pros::MotorGears::green:
                     coefficient = 900;
                     break;
-                case pros::AbstractMotor::gearset::red:
+                case pros::MotorGears::red:
                     coefficient = 1800;
                     break;
-                case pros::AbstractMotor::gearset::blue:
+                case pros::MotorGears::blue:
                     coefficient = 300;
                     break;
                 default:
@@ -83,22 +86,22 @@ double getTargetIMEOffset(double distance) {
         default:
             throw std::invalid_argument("Invalid encoder units");
     }
-    return distance * coefficient * driveTrain.gearRatio / (driveTrain.wheelDiameter * M_PI);
+    return distance * coefficient * gearRatio / (wheelDiameter * M_PI);
 }
 
 void driveDistance(double distance, double voltage) {
     double target = getTargetIMEOffset(distance);
-    left.moveRelative(target, voltage);
-    right.moveRelative(target, voltage);
+    left.move_relative(target, voltage);
+    right.move_relative(target, voltage);
 }
 
 void driveDistancePID(double distance, double maxVoltage, double timeout, bool async) {
     pros::Task drivePIDTask([=] {
-        double leftTarget = left.getPosition() + getTargetIMEOffset(distance);
-        double rightTarget = right.getPosition() + getTargetIMEOffset(distance);
+        double leftTarget = left.get_position() + getTargetIMEOffset(distance);
+        double rightTarget = right.get_position() + getTargetIMEOffset(distance);
         double target = (leftTarget + rightTarget) / 2;
 
-        double position = (left.getPosition() + right.getPosition()) / 2;
+        double position = (left.get_position() + right.get_position()) / 2;
         double error = target - position;
         double tolerance = 10;
 
@@ -118,10 +121,10 @@ void driveDistancePID(double distance, double maxVoltage, double timeout, bool a
                 voltage = -maxVoltage;
             }
 
-            left.moveVoltage(voltage);
-            right.moveVoltage(voltage);
+            left.move_voltage(voltage);
+            right.move_voltage(voltage);
 
-            position = (left.getPosition() + right.getPosition()) / 2;
+            position = (left.get_position() + right.get_position()) / 2;
             error = target - position;
             integral += error;
             derivative = error - lastError;
@@ -129,8 +132,8 @@ void driveDistancePID(double distance, double maxVoltage, double timeout, bool a
 
             pros::delay(10);
         }
-        left.moveVoltage(0);
-        right.moveVoltage(0);
+        left.move_voltage(0);
+        right.move_voltage(0);
     });
     if (!async) {
         drivePIDTask.join();
@@ -201,8 +204,8 @@ void turnAngle(double angle, double maxVelocity, int timeout) {
         }
 
         // Set the motor velocities
-		right.moveVelocity(-velocity);
-		left.moveVelocity(velocity);
+		right.move_velocity(-velocity);
+		left.move_velocity(velocity);
 		pros::delay(5);
 
         // Determine if within small error range
@@ -241,12 +244,14 @@ void turnAngle(double angle, double maxVelocity, int timeout) {
 		error = target - gyro.get_rotation();
         integral = integral * 0.8 + error;
 	}
-    drivetrain->stop();
+    left.brake();
+    right.brake();
     pros::delay(50);
 }
 
 void drivetrainInit(){
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+	left.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	right.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
     gyro.set_data_rate(5);
 	gyro.reset(true);
 	while(gyro.is_calibrating());
