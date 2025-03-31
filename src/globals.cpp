@@ -23,10 +23,10 @@ pros::Motor intake(-20);
 
 pros::Optical optical(7);
 
-okapi::Motor ladyBrownLeft(-5);
-okapi::Motor ladyBrownRight(6);
+pros::Motor ladyBrownLeft(-5);
+pros::Motor ladyBrownRight(6);
 
-okapi::MotorGroup ladyBrownGroup({ladyBrownLeft, ladyBrownRight});
+pros::MotorGroup ladyBrownGroup({-5, 6});
 
 pros::adi::Pneumatics mogoClamp = pros::adi::Pneumatics('H', false);
 pros::adi::Pneumatics rushMech = pros::adi::Pneumatics('G', false);
