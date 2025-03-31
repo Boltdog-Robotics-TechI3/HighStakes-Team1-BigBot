@@ -1,4 +1,6 @@
 #include "main.h"
+#include "globals.h"
+#include "drivetrain.hpp"
 
 
 
@@ -6,15 +8,15 @@
 //Init functions
 
 void ladyBrownInit(){
-	ladyBrownLeft.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
-	ladyBrownRight.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+	ladyBrownLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	ladyBrownRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-	ladyBrownLeft.setReversed(true);
-	ladyBrownRight.setReversed(false);
+	ladyBrownLeft.set_reversed(true);
+	ladyBrownRight.set_reversed(false);
 
-	ladyBrownGroup.setBrakeMode(okapi::AbstractMotor::brakeMode::hold);
+	ladyBrownGroup.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-	ladyBrownGroup.setEncoderUnits(okapi::AbstractMotor::encoderUnits::degrees);
+	ladyBrownGroup.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 }
 
 
@@ -60,8 +62,8 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-	chassis -> stop();
-	drivetrain -> stop();
+	chassis.stop();
+	drivetrain.stop();
 
 
 }
@@ -76,7 +78,7 @@ void disabled() {
  * starts.
  */
 void competition_initialize() {
-	drivetrain->setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+	drivetrain->set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 }
 
 /**
@@ -146,7 +148,7 @@ void opcontrol() {
 	chassis -> stop();
 	drivetrain -> stop();
 
-	drivetrain -> setBrakeMode(okapi::AbstractMotor::brakeMode::coast);
+	drivetrain -> set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 
 	master.rumble(".");
 	while (true) {
@@ -236,7 +238,7 @@ void opcontrol() {
 			pros::Task ladyDown(ladyBrownDown);
 		} else if(master.get_digital(DIGITAL_RIGHT)){
 			ladyBrownPrime();
-		} else if(ladyBrownGroup.isStopped()){
+		} else if(ladyBrownGroup.is_stopped()){
 		}
 
 		// if(!master.get_digital(DIGITAL_L2)){

@@ -25,10 +25,10 @@ extern pros::Motor intake;
 
 extern pros::Optical optical;
 
-extern okapi::Motor ladyBrownLeft;
-extern okapi::Motor ladyBrownRight;
+extern pros::Motor ladyBrownLeft;
+extern pros::Motor ladyBrownRight;
 
-extern okapi::MotorGroup ladyBrownGroup;
+extern pros::MotorGroup ladyBrownGroup;
 
 extern pros::adi::Pneumatics mogoClamp;
 extern pros::adi::Pneumatics rushMech;
