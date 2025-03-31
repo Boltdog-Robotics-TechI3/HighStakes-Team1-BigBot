@@ -112,45 +112,45 @@ void colorSortingAuto(){
 void ladyBrownScoreTeleop(){
     
     if(!ladyBrownUp){
-        ladyBrownGroup.moveVoltage(-10000);
+        ladyBrownGroup.move_voltage(-10000);
         pros::delay(650);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     } else {
-        ladyBrownGroup.moveVoltage(-4000);
+        ladyBrownGroup.move_voltage(-4000);
         pros::delay(250);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     }
     ladyBrownUp = true;
 }
 
 void ladyBrownScore(){
     if(!ladyBrownUp){
-        ladyBrownGroup.moveVoltage(-10000);
+        ladyBrownGroup.move_voltage(-10000);
         pros::delay(650);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     } else {
-        ladyBrownGroup.moveVoltage(-4000);
+        ladyBrownGroup.move_voltage(-4000);
         pros::delay(250);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     }
     ladyBrownUp = true;
 }
 
 void ladyBrownDown(){
     if(ladyBrownUp){
-        ladyBrownGroup.moveVoltage(10000);
+        ladyBrownGroup.move_voltage(10000);
         pros::delay(600);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     } else {
-        ladyBrownGroup.moveVoltage(4000);
+        ladyBrownGroup.move_voltage(4000);
         pros::delay(250);
-        ladyBrownGroup.moveVoltage(0);
+        ladyBrownGroup.move_voltage(0);
     }
     ladyBrownUp = false;
-    ladyBrownGroup.tarePosition();
+    ladyBrownGroup.tare_position();
 }
 
 void ladyBrownPrime(){
-    ladyBrownGroup.moveAbsolute(ladyBrownPrimed, 100);
+    ladyBrownGroup.move_absolute(ladyBrownPrimed, 100);
     ladyBrownUp = false;
 }
