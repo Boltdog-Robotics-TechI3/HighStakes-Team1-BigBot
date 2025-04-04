@@ -62,9 +62,6 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-	chassis.stop();
-	drivetrain.stop();
-
 
 }
 
@@ -78,7 +75,6 @@ void disabled() {
  * starts.
  */
 void competition_initialize() {
-	drivetrain->set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 }
 
 /**
@@ -145,10 +141,6 @@ void opcontrol() {
 	//Right joystick controls turning
 	int count = 0;
 	// chassis -> setMaxVelocity(10000);
-	chassis -> stop();
-	drivetrain -> stop();
-
-	drivetrain -> set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 
 	master.rumble(".");
 	while (true) {
@@ -238,11 +230,10 @@ void opcontrol() {
 			pros::Task ladyDown(ladyBrownDown);
 		} else if(master.get_digital(DIGITAL_RIGHT)){
 			ladyBrownPrime();
-		} else if(ladyBrownGroup.is_stopped()){
+		} else if(ladyBrownGroup.get_voltage() == 0){
 		}
 
 		// if(!master.get_digital(DIGITAL_L2)){
-			drivetrain->arcade(dir, turn); 
 		// } else {
 		// 	drivetrain->arcade(dir * .6, turn * .6); // Takes in the inputs from the analog sticks and moves the robot accordingly using arcade controls.
 		// }
