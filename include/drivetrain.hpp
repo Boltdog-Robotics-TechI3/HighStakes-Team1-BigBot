@@ -37,3 +37,6 @@ void turnToHeading(double heading, double maxVelocity=1.0, int timeout=5000, enu
 void turnAngle(double angle, double maxVelocity=1.0, int timeout=5000);
 
 void drivetrainInit();
+
+void driveDistance(double distance, double voltage);
+void driveDistancePID(double distance, double maxVoltage, double timeout, bool async);
