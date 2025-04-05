@@ -88,13 +88,13 @@ double getTargetIMEOffset(double distance) {
     return distance * coefficient * gearRatio / (wheelDiameter * M_PI);
 }
 
-void driveDistance(double distance, double voltage) { //distance is in inches
+void driveDistance(double distance, double voltage) { //distance is in inches, voltage is volts
     double target = getTargetIMEOffset(distance);
     left.move_relative(target, voltage);
     right.move_relative(target, voltage);
 }
 
-void driveDistancePID(double distance, double maxVoltage, double timeout, bool async) {
+void driveDistancePID(double distance, double maxVoltage, double timeout, bool async) { //Units: in, V, ms
     pros::Task drivePIDTask([=] {
         double leftTarget = left.get_position() + getTargetIMEOffset(distance);
         double rightTarget = right.get_position() + getTargetIMEOffset(distance);

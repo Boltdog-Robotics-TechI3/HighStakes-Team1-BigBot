@@ -231,6 +231,7 @@ void opcontrol() {
 		} else if(master.get_digital(DIGITAL_RIGHT)){
 			ladyBrownPrime();
 		} else if(ladyBrownGroup.get_voltage() == 0){
+		//testing for driveDistance
 		}else if(master.get_digital(DIGITAL_LEFT)){
 		driveDistance(18, 7);
 		}else if(master.get_digital(DIGITAL_L1)){
