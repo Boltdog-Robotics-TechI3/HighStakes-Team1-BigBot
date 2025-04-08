@@ -4,10 +4,11 @@ class MotionProfileController{
         double maxAcceleration;
         double maxVelocity;
         double startTime;
-        double timeAcceleration = maxVelocity / maxAcceleration;
-        double distanceTraveledAcceleration = 1/2 * timeAcceleration * maxVelocity;
-        double distanceTraveledMaxVelocity = setpoint - distanceTraveledAcceleration * 2; 
-        double timeAtMaxVelocity = distanceTraveledMaxVelocity / maxVelocity; 
+        double timeAcceleration;
+        double distanceTraveledAcceleration;
+        double distanceTraveledMaxVelocity; 
+        double timeAtMaxVelocity;
+        double totalTime; 
     
     public:
         MotionProfileController(double maxAcceleration, double maxVelocity);
