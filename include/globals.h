@@ -46,3 +46,10 @@ void ladyBrownScore();
 void ladyBrownDown();
 
 void ladyBrownPrime();
+
+enum LBState{LBIDLE,READY,SCORING};
+enum MGState{CLAMPED, UNCLAMPED};
+enum INState{INIDLE,INTAKE,OUTAKE,COLOR_SORT,SCORE};
+extern LBState LBCurrentState;
+extern MGState MGCurrentState;
+extern INState INCurrentState;

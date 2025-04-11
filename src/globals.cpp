@@ -2,6 +2,17 @@
 
 int MAX_VELOCITY = 600;
 
+
+//Possible states for all of the subsystems
+enum LBState{LBIDLE,READY,SCORING};
+enum MGState{CLAMPED, UNCLAMPED};
+enum INState{INIDLE,INTAKE,OUTAKE,COLOR_SORT,SCORE};
+
+//Define initial states for all of the subsystems
+LBState LBCurrentState = LBState::LBIDLE;
+MGState MGCurrentState = MGState::UNCLAMPED;
+INState INCurrentState = INState::INIDLE;
+
 int teleOPCurrentLimit = 2200;
 // Comp Specifications
 bool skills = false;
@@ -154,3 +165,10 @@ void ladyBrownPrime(){
     ladyBrownGroup.moveAbsolute(ladyBrownPrimed, 100);
     ladyBrownUp = false;
 }
+
+
+
+
+
+
+

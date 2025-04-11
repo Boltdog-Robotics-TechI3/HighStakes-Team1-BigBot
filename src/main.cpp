@@ -46,7 +46,7 @@ void on_center_button() {}
  */
 void initialize() {
 	initializeScreen();
-
+	pros::Task::create(StateMachineTask);
 	drivetrainInit();
 	ladyBrownInit();
 	lift.set_gearing(pros::MotorGear::green);
@@ -247,4 +247,69 @@ void opcontrol() {
 
 		pros::delay(20);                               // Run for 20 ms then update
 	}
+}
+
+void LBStateMachine(){
+	switch(LBCurrentState){
+		case LBIDLE:
+		//code to set LB to idle
+			ladyBrownDown();
+		  break;
+		case READY:
+		//code to set LB to Ready
+			ladyBrownPrime();
+		  break;
+		case SCORING:
+		//code to set LB to scoring position
+			ladyBrownScore();
+		  break;
+	};
+}
+
+void MGStateMachine(){
+	switch(MGCurrentState){
+		case UNCLAMPED:
+		//code to set MG clamp to unclamped
+			mogoClamp.toggle();
+		  break;
+		case CLAMPED:
+		//code to set MG clamp to clamped
+			mogoClamp.toggle();
+		  break;
+
+	};
+}
+
+void INStateMachine(){
+	switch(INCurrentState){
+		case INIDLE:
+		//code to set LB to idle
+			intake.move(0);
+			lift.move(0);
+		  break;
+		case INTAKE:
+			intake.move(127);
+			lift.move(0);
+		//code to set LB to Ready
+		  break;
+		case OUTAKE:
+			intake.move(-127);
+			lift.move(-127);
+		//code to set LB to outake 
+		  break;
+		case COLOR_SORT:
+		//code to activate color sorting
+		  break;
+		case SCORE:
+			intake.move(127);
+			lift.move(127);
+		//code to set LB to scoring position
+	};
+}
+
+void StateMachineTask(){
+	LBStateMachine();
+	MGStateMachine();
+	INStateMachine();
+	pros::delay(20);
 }
