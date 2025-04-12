@@ -26,7 +26,7 @@ double MotionProfileController::calculate(int currentTime){
         return velocity;
     }
     if(localTime < totalTime){
-        velocity = maxVelocity * (1 - (localTime - (timeAcceleration + timeAtMaxVelocity)/timeAcceleration));
+        velocity = maxVelocity * (1 - (localTime - (timeAcceleration + timeAtMaxVelocity)) / timeAcceleration);
         return velocity;
     }
 }
