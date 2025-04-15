@@ -10,8 +10,8 @@ pros::Motor frontLeft(-8);
 pros::Motor backLeft(9);
 pros::Motor topLeft(-10);
 
-pros::MotorGroup right({1, -3, 2});
-pros::MotorGroup left({-8, -10, 9});
+pros::MotorGroup right({-1, -2, 3, 4});
+pros::MotorGroup left({-7, -8, 9, 10});
 
 pros::IMU gyro(12);
 
