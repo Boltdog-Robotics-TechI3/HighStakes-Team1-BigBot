@@ -1,3 +1,4 @@
+#include "PIDcontroller.hpp"
 class MotionProfileController{
     private:
         double setpoint;
@@ -8,10 +9,12 @@ class MotionProfileController{
         double distanceTraveledAcceleration;
         double distanceTraveledMaxVelocity; 
         double timeAtMaxVelocity;
-        double totalTime; 
+        double totalTime;
+        PIDController PIDcontroller;
+         
     
     public:
         MotionProfileController(double maxAcceleration, double maxVelocity);
         void reset(double setpoint);
-        double calculate(int currentTime);
+        double calculate(int currentTime, double velocity);
 };
