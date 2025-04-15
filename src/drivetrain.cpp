@@ -3,15 +3,8 @@
 double gearRatio = 3/4; //450 rpm
 double wheelDiameter = 2.75; //in
 
-pros::Motor frontRight(1);
-pros::Motor backRight(2);
-pros::Motor topRight(-3);
-pros::Motor frontLeft(-8);
-pros::Motor backLeft(9);
-pros::Motor topLeft(-10);
-
-pros::MotorGroup right({-1, -2, 3, 4});
 pros::MotorGroup left({-7, -8, 9, 10});
+pros::MotorGroup right({-1, -2, 3, 4});
 
 pros::IMU gyro(12);
 
@@ -88,7 +81,7 @@ double getTargetIMEOffset(double distance) {
     return distance * coefficient * gearRatio / (wheelDiameter * M_PI);
 }
 
-void driveDistance(double distance, double voltage) { //distance is in inches, voltage is volts
+void driveDistance(double distance, double voltage) { //distance is in inches, velocity is in ?
     double target = getTargetIMEOffset(distance);
     left.move_relative(target, voltage);
     right.move_relative(target, voltage);
